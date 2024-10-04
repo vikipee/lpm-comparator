@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const FileUpload = () => {
@@ -11,6 +11,17 @@ const FileUpload = () => {
   const [uploadProgress, setUploadProgress] = useState(null); // Track upload progress
   const [responseData, setResponseData] = useState(null);  // Hold server response
   const [errorMessage, setErrorMessage] = useState(null);  // Error messages
+
+  //Make get request after reloading the page
+  useEffect(() => {
+      axios.get('/report').then((response) => {
+        setResponseData(response.data);
+      }).catch((error) => {
+        if (error.status === 500) {
+          setErrorMessage('Internal server error');
+        } 
+    });
+  }, []);
 
   // Handle .pnml files for Side A
   const handlePnmlFilesSideAChange = (e) => {

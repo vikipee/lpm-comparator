@@ -57,6 +57,7 @@ history/
 # Files created by Flask server when run
 instance/
 uploads/
+flask_session/
 *.sqlite3
 
 # Test results
