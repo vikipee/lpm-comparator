@@ -5,7 +5,7 @@ from lpm_set_comparison_python.lpm import LPM, LPMSet
 
 UPLOAD_FOLDER = './uploads'
 
-ALLOWED_EXTENSIONS_PNML = {'pnml'}
+ALLOWED_EXTENSIONS_PNML = {'pnml', 'apnml'}
 ALLOWED_EXTENSIONS_XES = {'xes'}
 
 def allowed_file(filename, allowed_extensions):

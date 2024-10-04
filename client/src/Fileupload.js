@@ -87,10 +87,10 @@ const FileUpload = () => {
       <h2>Upload Multiple .pnml Files and Optional .xes File</h2>
       <form onSubmit={handleFileUpload}>
         <h3>Side A (.pnml Files)</h3>
-        <input type="file" accept=".pnml" multiple onChange={handlePnmlFilesSideAChange} />
+        <input type="file" accept=".pnml, .apnml" multiple onChange={handlePnmlFilesSideAChange} />
 
         <h3>Side B (.pnml Files)</h3>
-        <input type="file" accept=".pnml" multiple onChange={handlePnmlFilesSideBChange} />
+        <input type="file" accept=".pnml, .apnml" multiple onChange={handlePnmlFilesSideBChange} />
 
         <h3>Optional .xes File</h3>
         <input type="file" accept=".xes" onChange={handleXesFileChange} />
