@@ -58,10 +58,29 @@ def compute_pairwise_similarity_measures(set_a: LPMSet, set_b: LPMSet, similarit
     
     return similarity_matrix
 
+def check_subset(similarity_matrix: np.ndarray, sim_threshold= 0.9, subset_threshold=1):
+    #Returns (Bool, Bool), where the first element is True if the first set is a subset of the second set, and the second element is True if the second set is a subset of the first set.
+    sm = similarity_matrix.copy()
+    
+    row_max = np.max(sm, axis=1)
+    col_max = np.max(sm, axis=0)
+
+    row_max = np.where(row_max > sim_threshold, 1, 0)
+    col_max = np.where(col_max > sim_threshold, 1, 0)
+
+    row_ratio = np.sum(row_max) / len(row_max)
+    col_ratio = np.sum(col_max) / len(col_max)
+
+    return row_ratio > subset_threshold, col_ratio > subset_threshold
+    
+
 def compute_similarity_measures(set_a: LPMSet, set_b: LPMSet):
     #print(compute_trace_similarity_leven(set_a.lpms[0], set_b.lpms[0]))
     #print(np.array(compute_pairwise_similarity_measures(set_a, set_b, compute_eventually_follows_similarity)))
     #print(np.array(compute_pairwise_similarity_measures(set_a, set_b, compute_trace_similarity_leven)))
-    print(compute_trace_similarity_leven(set_a, set_b))
-    print(compute_eventually_follows_similarity(set_a, set_b))
-    print(compute_trace_similarity_perfect(set_a, set_b))
+    #print(compute_trace_similarity_leven(set_a, set_b))
+    #print(compute_eventually_follows_similarity(set_a, set_b))
+    #print(compute_trace_similarity_perfect(set_a, set_b))
+    a_subset_b, b_subset_a = check_subset(np.array(compute_pairwise_similarity_measures(set_a, set_b, compute_trace_similarity_leven)))
+    print(f"Subset A in B: {a_subset_b}")
+    print(f"Subset B in A: {b_subset_a}")
