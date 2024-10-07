@@ -12,10 +12,10 @@ def calculate_report(
     # Create a dictionary to store the results of the comparison
     report = {}
 
-    compute_similarity_measures(set_a, set_b)
+    #compute_similarity_measures(set_a, set_b)
 
     if event_log is not None:
-        #compute_conformance_measures()
+        compute_conformance_measures(set_a, set_b, event_log)
         report["xes"] = {
             "traces": len(event_log)
         }

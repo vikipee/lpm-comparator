@@ -13,7 +13,7 @@ class LPM:
         self.traces = None
         self.log = None
         self.eventually_follows_set = None
-        self.get_eventually_follows_set()
+        #self.get_eventually_follows_set()
 
     def __repr__(self):
         return f"LPM(net={self.net}, im={self.im}, fm={self.fm})"
