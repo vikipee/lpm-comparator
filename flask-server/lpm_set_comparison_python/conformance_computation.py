@@ -76,7 +76,8 @@ def can_event_be_replayed_on_model(event_idx, trace: Tuple[str], model: LPM):
         index_set = []
         last_trace_index_before_skip = None
         last_lpm_index_before_skip = None
-        for i in range(0, len(lpm_trace),1):
+        i = 0
+        while i < len(lpm_trace):
             lpm_event = lpm_trace[i]
             if cur_trace_idx >= len(trace):
                 if last_trace_index_before_skip is None:
@@ -96,6 +97,8 @@ def can_event_be_replayed_on_model(event_idx, trace: Tuple[str], model: LPM):
 
                     index_set.append(cur_trace_idx)
                     cur_trace_idx += 1
+                    i += 1
+                    continue
 
             if lpm_event == trace[event_idx] and cur_trace_idx <= event_idx:
                 index_set.append(event_idx)
@@ -108,7 +111,7 @@ def can_event_be_replayed_on_model(event_idx, trace: Tuple[str], model: LPM):
                     cur_trace_idx += 1
                 if cur_trace_idx >= len(trace):
                     if last_trace_index_before_skip is not None:
-                        i = last_lpm_index_before_skip -1
+                        i = last_lpm_index_before_skip
                         continue
                     else:
                         index_set = []
@@ -116,6 +119,7 @@ def can_event_be_replayed_on_model(event_idx, trace: Tuple[str], model: LPM):
                 
                 index_set.append(cur_trace_idx)
                 cur_trace_idx += 1
+            i += 1
                 
         
         if len(index_set) > 0:
