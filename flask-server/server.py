@@ -4,8 +4,6 @@ from file_importer import convert_files
 from lpm_set_comparison_python.main import calculate_report
 from lpm_set_comparison_python.lpm import LPMSet
 
-from lpm_set_comparison_python.conformance_computation import test_can_event_be_replayed_on_model
-
 app = Flask(__name__)
 
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -59,6 +57,4 @@ def get_report():
     return jsonify(report)
 
 if __name__ == '__main__':
-    while True:
-        test_can_event_be_replayed_on_model()
-    #app.run(debug=True)
+    app.run(debug=True)
