@@ -4,9 +4,6 @@ from typing import Tuple
 import numpy as np
 
 def compute_conformance_measures(set_a: LPMSet, set_b: LPMSet, event_log: EventLog):
-    #print(f"Event log: {event_log}")
-    #test_can_event_be_replayed_on_model()
-    
     coverage_a, duplicate_coverage_a = compute_event_coverage(event_log, set_a)
     coverage_b, duplicate_coverage_b = compute_event_coverage(event_log, set_b)
 
@@ -17,13 +14,6 @@ def compute_conformance_measures(set_a: LPMSet, set_b: LPMSet, event_log: EventL
         "duplicate_coverage_b": duplicate_coverage_b
     }
     return results
-
-def test_can_event_be_replayed_on_model():
-    trace = ('a', 'x' ,'b', 'e', 'd', 'e','b', 'f')
-    lpm = LPM(None, None, None)
-    lpm.traces = [('a', 'b', 'd', 'e', 'f')]
-    replayable_indices = can_event_be_replayed_on_model(6, trace, lpm)
-    print(f"Replayable indices: {replayable_indices}")
 
 def compute_event_coverage(event_log: EventLog, lpms: LPMSet):
     trace_events_coverage = compute_replayable_events_on_log(event_log, lpms)
