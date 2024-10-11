@@ -115,6 +115,17 @@ const FileUpload = () => {
           {responseData.similarity.a_subset_b && responseData.similarity.a_subset_b === "True" && (
             <p>Set A is a subset of Set B</p>
           )}
+          {responseData.conformance && ( 
+            <>
+              <h3>Conformance Measures</h3>
+              {responseData.conformance.coverage_a && <p>Coverage A: {responseData.conformance.coverage_a} </p>}
+              {responseData.conformance.coverage_b && <p>Coverage B: {responseData.conformance.coverage_b} </p>}
+              {responseData.conformance.duplicate_coverage_a && <p>Duplicate Coverage A: {responseData.conformance.duplicate_coverage_a} </p>}
+              {responseData.conformance.duplicate_coverage_b && <p>Duplicate Coverage B: {responseData.conformance.duplicate_coverage_b} </p>}
+              
+            </>
+          )}
+          
         </div>
       )}
       {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}  {/* Show error message */}

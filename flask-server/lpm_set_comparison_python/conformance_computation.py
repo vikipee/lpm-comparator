@@ -41,6 +41,8 @@ def compute_replayable_events_on_log(event_log: EventLog, lpms: LPMSet):
     for i, trace in enumerate(traces):
         trace_events_coverage[i] = compute_replayable_events_on_trace_set(trace, lpms)
 
+    return trace_events_coverage
+
 def compute_replayable_events_on_trace_set(trace: Tuple[str], lpms: LPMSet):
     covered_events = np.zeros(len(trace))
 
@@ -69,7 +71,7 @@ def can_event_be_replayed_on_model(event_idx, trace: Tuple[str], model: LPM):
     #Always try if the next event could be the event_idx
     replayable_indices = set()
     for lpm_trace in model.get_traces():
-        if trace[event_idx] not in lpm_trace:
+        if lpm_trace is None or trace[event_idx] not in lpm_trace:
             continue
 
         cur_trace_idx = 0
@@ -87,11 +89,11 @@ def can_event_be_replayed_on_model(event_idx, trace: Tuple[str], model: LPM):
                     index_set = index_set[:index_set.index(event_idx)]
                     cur_trace_idx = last_trace_index_before_skip
                     last_trace_index_before_skip = None
-
-                    while trace[cur_trace_idx] != lpm_event:
+                    
+                    while cur_trace_idx < len(trace) and trace[cur_trace_idx] != lpm_event:
                         cur_trace_idx += 1
 
-                    if trace[cur_trace_idx] != lpm_event or cur_trace_idx == event_idx:
+                    if cur_trace_idx>= len(trace) or trace[cur_trace_idx] != lpm_event or cur_trace_idx == event_idx:
                         index_set = []
                         break
 
@@ -106,6 +108,9 @@ def can_event_be_replayed_on_model(event_idx, trace: Tuple[str], model: LPM):
                     last_trace_index_before_skip = cur_trace_idx
                     last_lpm_index_before_skip = i
                 cur_trace_idx = event_idx + 1
+                if cur_trace_idx >= len(trace) and last_lpm_index_before_skip is not None:
+                    i = last_lpm_index_before_skip
+                    continue
             else:
                 while cur_trace_idx < len(trace) and trace[cur_trace_idx] != lpm_event:
                     cur_trace_idx += 1
@@ -121,7 +126,6 @@ def can_event_be_replayed_on_model(event_idx, trace: Tuple[str], model: LPM):
                 cur_trace_idx += 1
             i += 1
                 
-        
         if len(index_set) > 0:
             replayable_indices.update(index_set)
         
@@ -130,18 +134,19 @@ def can_event_be_replayed_on_model(event_idx, trace: Tuple[str], model: LPM):
                 
     return list(replayable_indices) 
 
-def get_traces_from_event_log(event_log: EventLog):
+def get_traces_from_event_log(event_log):
     traces = []
-        
-    for trace in event_log:
-        trace_events = [event['concept:name'] for event in trace]
+    grouped = event_log.groupby('case:concept:name') 
+    
+    for case_id, trace in grouped:
+        trace_events = trace['concept:name'].tolist() 
         traces.append(tuple(trace_events))
     
     return traces
 
 def get_projected_trace_on_model(trace: Tuple[str], model: LPM):
     model_activities = [transition.label for transition in model.net.transitions]
-    print(model_activities)
+    #print(model_activities)
     
     projected_trace = []
     for event in trace:

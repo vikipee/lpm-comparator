@@ -17,10 +17,8 @@ def calculate_report(
     report["similarity"] = similarity_report
 
     if event_log is not None:
-        #compute_conformance_measures(set_a, set_b, event_log)
-        report["xes"] = {
-            "traces": len(event_log)
-        }
+        report["conformance"] = compute_conformance_measures(set_a, set_b, event_log)
+        
     # Calculate the comparison results
     # Compare the LPMS from Side A and Side B
     # Compare the event log with the LPMS from Side A and Side B
