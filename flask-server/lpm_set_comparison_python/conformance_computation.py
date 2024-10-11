@@ -1,7 +1,8 @@
 from .lpm import LPMSet, LPM
-from pm4py.objects.log.obj import EventLog
+from pm4py.objects.log.obj import EventLog, Trace, Event
 from typing import Tuple
 import numpy as np
+import pm4py
 
 def compute_conformance_measures(set_a: LPMSet, set_b: LPMSet, event_log: EventLog):
     coverage_a, duplicate_coverage_a = compute_event_coverage(event_log, set_a)
@@ -156,6 +157,42 @@ def get_projected_trace_on_model(trace: Tuple[str], model: LPM):
             projected_trace.append(None)
 
     return tuple(projected_trace)
+
+def compute_fitness_precision_on_subtraces(traces, model: LPM):
+    subtraces = get_subtraces_for_model(traces, model)
+    event_log = create_event_log_from_traces(subtraces)
+
+    fitness =  pm4py.fitness_alignments(event_log, model.net, model.im, model.fm)
+    precision = pm4py.precision_alignments(event_log, model.net, model.im, model.fm)
+
+    return fitness, precision
+
+def get_subtraces_for_model(traces, model: LPM):
+    #Return a list of subtraces that start with an event that is a start event in the model and end with an event that is an end event in the model
+    start_activities = set([trace[0] for trace in model.get_traces()])
+    end_activities = set([trace[-1] for trace in model.get_traces()])
+
+    subtraces = []
+    for trace in traces:
+        start_indices = [i for i, event in enumerate(trace) if event in start_activities]
+        end_indices = [i for i, event in enumerate(trace) if event in end_activities]
+        
+        for start_idx in start_indices:
+            for end_idx in end_indices:
+                if start_idx < end_idx:
+                    subtraces.append(get_projected_trace_on_model(trace[start_idx:end_idx+1], model))
+
+def create_event_log_from_traces(traces_list):
+    event_log = EventLog()
+    for trace_tuple in traces_list:
+        trace = Trace()
+        for activity in trace_tuple:
+            if activity is None:
+                continue
+            event = Event({"concept:name": activity})
+            trace.append(event)
+        event_log.append(trace)
+    return event_log
 
 """
 Replaying can either be done using standard replying techniques but on subsequences or as a relaxed replay. However, how do you then compute the coverage? All events that are part of a trace of a model.
