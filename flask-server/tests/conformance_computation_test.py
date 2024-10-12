@@ -10,16 +10,22 @@ class TestCoverage(unittest.TestCase):
         super(TestCoverage, self).__init__(*args, **kwargs)
         self.sample_lpm = None
         self.sample_traces = None
+        self.sample_log = None
 
     def setUp(self):
         net, im, fm = pm4py.read_pnml('tests/sample_petri_nets/petrinet7.apnml')
-        self.sample_lpm = LPM(net, im, fm)
+        self.sample_lpm1 = LPM(net, im, fm)
+
+        net, im, fm = pm4py.read_pnml('tests/sample_petri_nets/meaningfulPetrinet.pnml')
+        self.sample_lpm2 = LPM(net, im, fm)
+
         self.sample_traces = [('A_ACCEPTED','x', 'extra', 'W_Nabellen offertes', 'A_CANCELLED'), ('A_ACCEPTED', 'A_CANCELLED', 'somthing', 'W_Nabellen offertes')]
-        print(f"Traces: {self.sample_lpm.get_traces()}, the end")
+
+        self.sample_log = pm4py.read_xes('tests/sample_logs/BPIC_2012_100_Samples.xes')
 
     def test_get_projected_trace_on_model(self):
         trace = ['A_ACCEPTED', 'x', 'extra', 'W_Nabellen offertes', 'A_CANCELLED']
-        lpm = self.sample_lpm
+        lpm = self.sample_lpm1
 
         projected_trace = cc.get_projected_trace_on_model(trace, lpm)
 
@@ -36,6 +42,18 @@ class TestCoverage(unittest.TestCase):
 
         covered_events = cc.compute_replayable_events_on_trace_model(trace, lpm)
         print(f"Covered events: {covered_events}")
+
+    def test_compute_fitness_precision_on_subtraces(self):
+        traces = cc.get_traces_from_event_log(self.sample_log)
+        self.sample_log
+       
+        lpm = self.sample_lpm2
+
+        fitness, precision = cc.compute_fitness_precision_on_subtraces(traces, lpm)
+
+        print(f"Fitness: {fitness}, Precision: {precision}")
+
+
 
 if __name__ == '__main__':
     unittest.main()
