@@ -15,6 +15,7 @@ class LPM:
         self.eventually_follows_set = None
         self.fitness = None
         self.precision = None
+        self.coverage = None
         #self.get_eventually_follows_set()
 
     def __repr__(self):
@@ -45,6 +46,19 @@ class LPM:
             self.eventually_follows_set = set(eventually_follows_dict.keys())
 
         return self.eventually_follows_set
+    
+    def get_fitness(self):
+        if self.fitness is None:
+            self.fitness = None #Adjust this line to compute the fitness of the LPM
+        return self.fitness
+    
+    def get_precision(self):
+        if self.precision is None:
+            self.precision = None #Adjust this line to compute the precision of the LPM
+        return self.precision
+    
+    def get_coverage(self):
+        return self.coverage
 
 
 class LPMSet:
