@@ -14,7 +14,7 @@ const FileUpload = () => {
 
   //Make get request after reloading the page
   useEffect(() => {
-      axios.get('/report').then((response) => {
+      axios.get('/api/report').then((response) => {
         setResponseData(response.data);
       }).catch((error) => {
         if (error.status === 500) {
@@ -61,7 +61,7 @@ const FileUpload = () => {
     }
 
     try {
-      const response = await axios.post('/upload', formData, {
+      const response = await axios.post('/api/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',  // Set content type to multipart
         },
