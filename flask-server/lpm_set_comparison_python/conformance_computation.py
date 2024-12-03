@@ -4,31 +4,39 @@ from typing import Tuple, List
 import numpy as np
 import pm4py
 from lpm_set_comparison_python import utils
+import concurrent.futures
+from functools import partial
+import time
 
 def compute_conformance_measures(set_a: LPMSet, set_b: LPMSet, event_log: EventLog):
     traces = utils.get_traces_from_event_log(event_log)
+
+    coverage_a, duplicate_coverage_a, coverage_b, duplicate_coverage_b = 0, 0, 0, 0
+
 
     coverage_a, duplicate_coverage_a = compute_event_coverage(traces, set_a)
     print("Coverage A: ", coverage_a)
     coverage_b, duplicate_coverage_b = compute_event_coverage(traces, set_b)
     print("Coverage B: ", coverage_b)
-
+    
     fitness_precision_values_a = []
     fitness_precision_values_b = []
 
-    for lpm in set_a.lpms:
-        fitness, precision = compute_fitness_precision_on_subtraces(traces, lpm)
-        lpm.fitness = fitness
-        lpm.precision = precision
-        fitness_precision_values_a.append((fitness["averageFitness"], precision))
+    partial_fitness_precision_on_traces = partial(compute_fitness_precision_on_subtraces, traces=traces)
+    with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+            print("Start computing fitness and precision values for set A")
+            start_time = time.time()
+            fitness_precision_values_a = list(executor.map(partial_fitness_precision_on_traces, set_a.lpms))
+            end_time = time.time()
+            print(f"Computing time in seconds: {(end_time - start_time)}")
+
+            print("Start computing fitness and precision values for set B")
+            start_time = time.time()
+            fitness_precision_values_b = list(executor.map(partial_fitness_precision_on_traces, set_b.lpms))
+            end_time = time.time()
+            print(f"Computing time in seconds: {(end_time - start_time)}")
     
-    for lpm in set_b.lpms:
-        fitness, precision = compute_fitness_precision_on_subtraces(traces, lpm)
-        lpm.fitness = fitness
-        lpm.precision = precision
-        fitness_precision_values_b.append((fitness["averageFitness"], precision))
-
-
+    
     results = {
         "coverage_a": coverage_a,
         "duplicate_coverage_a": duplicate_coverage_a,
@@ -41,10 +49,12 @@ def compute_conformance_measures(set_a: LPMSet, set_b: LPMSet, event_log: EventL
 
 def compute_event_coverage(traces: List[Tuple[str]], lpms: LPMSet):
     trace_events_coverage = compute_replayable_events_on_log(traces, lpms)
+    #print(f"\n\nTrace events coverage: {trace_events_coverage}\n---------------------------------------------------\n\n")
     total_events = 0
     total_covered_events = 0
     total_duplicate_events = 0
     for trace_coverage in trace_events_coverage:
+
         covered_events = np.where(trace_coverage >= 1, 1, 0).sum()
         duplicate_coverage = np.where(trace_coverage > 1, 1, 0).sum()
 
@@ -60,18 +70,27 @@ def compute_event_coverage(traces: List[Tuple[str]], lpms: LPMSet):
     return coverage, duplicate_coverage
 
 def compute_replayable_events_on_log(traces: List[Tuple[str]], lpms: LPMSet):
-    trace_events_coverage = [None] * len(traces)
-    for i, trace in enumerate(traces):
-        trace_events_coverage[i] = compute_replayable_events_on_trace_set(trace, lpms)
+    trace_events_coverage = None
+    for lpm in lpms.lpms:
+        if trace_events_coverage is None:
+            trace_events_coverage = compute_replayable_events_on_log_model(traces, lpm)
+        else:
+            replayable_events = compute_replayable_events_on_log_model(traces, lpm)
+            for i, trace_coverage in enumerate(replayable_events):
+                trace_events_coverage[i] += trace_coverage
 
     return trace_events_coverage
 
-def compute_replayable_events_on_trace_set(trace: Tuple[str], lpms: LPMSet):
-    covered_events = np.zeros(len(trace))
-
-    for lpm in lpms.lpms:
-        covered_events += compute_replayable_events_on_trace_model(trace, lpm)
-
+def compute_replayable_events_on_log_model(log: List[Tuple[str]], model: LPM):
+    covered_events = []
+    total_events = 0
+    total_covered_events = 0
+    for trace in log:
+        covered_events.append(compute_replayable_events_on_trace_model(trace, model))
+        total_events += len(trace)
+        total_covered_events += covered_events[-1].sum()
+    model.coverage = total_covered_events / total_events
+    print(f"Model coverage: {model.coverage}")
     return covered_events
 
 def compute_replayable_events_on_trace_model(trace: Tuple[str], model: LPM):
@@ -157,10 +176,12 @@ def can_event_be_replayed_on_model(event_idx, trace: Tuple[str], model: LPM):
                 
     return list(replayable_indices) 
 
-def compute_fitness_precision_on_subtraces(traces, model: LPM):
+def compute_fitness_precision_on_subtraces(model: LPM, traces):
     subtraces = utils.get_subtraces_for_model(traces, model)
 
     if len(subtraces) == 0:
+        model.fitness = 0
+        model.precision = 0
         return 0, 0
     
     print(f"Length of subtraces: {len(subtraces)}")
@@ -168,8 +189,19 @@ def compute_fitness_precision_on_subtraces(traces, model: LPM):
 
     event_log = utils.create_event_log_from_traces(list(set(subtraces)))
 
-    fitness =  pm4py.fitness_alignments(event_log, model.net, model.im, model.fm)
-    precision = pm4py.precision_alignments(event_log, model.net, model.im, model.fm)
+    #fitness =  pm4py.fitness_alignments(event_log, model.net, model.im, model.fm)["averageFitness"]
+    #precision = pm4py.precision_alignments(event_log, model.net, model.im, model.fm)
+
+    #fitness =  pm4py.conformance.fitness_footprints(event_log, model.net, model.im, model.fm)
+    #precision = pm4py.conformance.precision_footprints(event_log, model.net, model.im, model.fm)
+
+    #fitness = pm4py.conformance.fitness_alignments(event_log, model.net, model.im, model.fm)
+    #precision = pm4py.conformance.precision_alignments(event_log, model.net, model.im, model.fm)
+
+    fitness = pm4py.conformance.fitness_token_based_replay(event_log, model.net, model.im, model.fm)["log_fitness"]
+    precision = pm4py.conformance.precision_token_based_replay(event_log, model.net, model.im, model.fm)
+    model.fitness = fitness
+    model.precision = precision
 
     return fitness, precision
 
