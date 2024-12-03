@@ -12,18 +12,27 @@ def compute_conformance_measures(set_a: LPMSet, set_b: LPMSet, event_log: EventL
     traces = utils.get_traces_from_event_log(event_log)
 
     coverage_a, duplicate_coverage_a, coverage_b, duplicate_coverage_b = 0, 0, 0, 0
-
-
-    coverage_a, duplicate_coverage_a = compute_event_coverage(traces, set_a)
-    print("Coverage A: ", coverage_a)
-    coverage_b, duplicate_coverage_b = compute_event_coverage(traces, set_b)
-    print("Coverage B: ", coverage_b)
     
     fitness_precision_values_a = []
     fitness_precision_values_b = []
 
     partial_fitness_precision_on_traces = partial(compute_fitness_precision_on_subtraces, traces=traces)
+    partial_model_coverage = partial(compute_model_coverage, traces=traces)
     with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+            start_time = time.time()
+            log_coverage_masks_a = list(executor.map(partial_model_coverage, set_a.lpms))
+            coverage_a, duplicate_coverage_a = compute_coverage_from_masks(log_coverage_masks_a)
+            end_time = time.time()
+            print(f"Computing time in seconds: {(end_time - start_time)}")
+            print("Coverage A: ", coverage_a)
+
+            start_time = time.time()
+            log_coverage_masks_b = list(executor.map(partial_model_coverage, set_b.lpms))
+            coverage_b, duplicate_coverage_b = compute_coverage_from_masks(log_coverage_masks_b)
+            end_time = time.time()
+            print(f"Computing time in seconds: {(end_time - start_time)}")
+            print("Coverage B: ", coverage_b)
+
             print("Start computing fitness and precision values for set A")
             start_time = time.time()
             fitness_precision_values_a = list(executor.map(partial_fitness_precision_on_traces, set_a.lpms))
@@ -47,13 +56,20 @@ def compute_conformance_measures(set_a: LPMSet, set_b: LPMSet, event_log: EventL
     }
     return results
 
-def compute_event_coverage(traces: List[Tuple[str]], lpms: LPMSet):
-    trace_events_coverage = compute_replayable_events_on_log(traces, lpms)
-    #print(f"\n\nTrace events coverage: {trace_events_coverage}\n---------------------------------------------------\n\n")
+def compute_coverage_from_masks(log_coverage_masks: List[List[np.ndarray]]):
+    #Combine all masks
+    combined_masks = None
+    for mask in log_coverage_masks:
+        if combined_masks is None:
+            combined_masks = mask
+        else:
+            for i, trace_mask in enumerate(mask):
+                combined_masks[i] += trace_mask
+    
     total_events = 0
     total_covered_events = 0
     total_duplicate_events = 0
-    for trace_coverage in trace_events_coverage:
+    for trace_coverage in combined_masks:
 
         covered_events = np.where(trace_coverage >= 1, 1, 0).sum()
         duplicate_coverage = np.where(trace_coverage > 1, 1, 0).sum()
@@ -69,23 +85,11 @@ def compute_event_coverage(traces: List[Tuple[str]], lpms: LPMSet):
 
     return coverage, duplicate_coverage
 
-def compute_replayable_events_on_log(traces: List[Tuple[str]], lpms: LPMSet):
-    trace_events_coverage = None
-    for lpm in lpms.lpms:
-        if trace_events_coverage is None:
-            trace_events_coverage = compute_replayable_events_on_log_model(traces, lpm)
-        else:
-            replayable_events = compute_replayable_events_on_log_model(traces, lpm)
-            for i, trace_coverage in enumerate(replayable_events):
-                trace_events_coverage[i] += trace_coverage
-
-    return trace_events_coverage
-
-def compute_replayable_events_on_log_model(log: List[Tuple[str]], model: LPM):
+def compute_model_coverage(model: LPM, traces: List[Tuple[str]]):
     covered_events = []
     total_events = 0
     total_covered_events = 0
-    for trace in log:
+    for trace in traces:
         covered_events.append(compute_replayable_events_on_trace_model(trace, model))
         total_events += len(trace)
         total_covered_events += covered_events[-1].sum()
