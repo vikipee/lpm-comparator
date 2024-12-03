@@ -10,7 +10,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_THRESHOLD'] = 100
 Session(app)
 
-@app.route('/upload', methods=['POST'])
+@app.route('/api/upload', methods=['POST'])
 def upload_files():
     pnml_files_side_a = request.files.getlist('pnml_side_a')
     pnml_files_side_b = request.files.getlist('pnml_side_b')
@@ -40,7 +40,7 @@ def upload_files():
     return jsonify(report)
 
 
-@app.route('/report', methods=['GET'])
+@app.route('/api/report', methods=['GET'])
 def get_report():
     report = session.get('report')
     serialized_lpms_a = session.get('lpmset_a')
