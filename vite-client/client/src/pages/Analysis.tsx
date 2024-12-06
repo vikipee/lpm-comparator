@@ -15,7 +15,6 @@ export default function AnalysisPage({
   }){
 
     const exportResults = async () => {
-        console.log("Exporting results");
         try{
           const exportReport = await axios.get<ExportFile>('/api/export');
           const data = exportReport.data;

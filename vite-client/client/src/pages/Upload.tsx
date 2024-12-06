@@ -54,13 +54,11 @@ export default function UploadPage({
       
         try {
           setIsLoading(true);
-          setStatusText('Uploading files...');
+          setStatusText('Processing files...');
       
           await axios.post<ReportData>('/api/upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           });
-          console.log("Files uploaded successfully");
-          setStatusText('Processing files...');
           listenForProgress();
         } catch (error: any) {
           setIsLoading(false);
@@ -78,7 +76,6 @@ export default function UploadPage({
       
         eventSource.onmessage = (event) => {
           const data = JSON.parse(event.data);
-          console.log(data);
           setStatusText(data.message);
       
           if (data.report) {

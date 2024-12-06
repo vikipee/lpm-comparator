@@ -38,6 +38,7 @@ def delete_files(session_id):
     if os.path.exists(f"uploads/{session_id}"):
         for file in os.listdir(f"uploads/{session_id}"):
             os.remove(f"uploads/{session_id}/{file}")
+        os.chmod(f"uploads/{session_id}", 0o777)
         os.rmdir(f"uploads/{session_id}")
 
 def get_string_from_binary(binary):
