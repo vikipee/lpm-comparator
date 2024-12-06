@@ -21,7 +21,7 @@ export default function Main(){
         <div className="container w-10/12 mx-auto p-4 min-h-screen">
             {currentPage == "start" && <StartPage setCurrentPage={setCurrentPage} />}
             {currentPage == "upload" && <UploadPage setCurrentPage={setCurrentPage} eventLog={eventLog} setEventLog={setEventLog} lpmsLeft={lpmsLeft} setLpmsLeft={setLpmsLeft} lpmsRight={lpmsRight} setLpmsRight={setLpmsRight} setReport={setReport}/>}
-            {currentPage == "analysis" && <AnalysisPage setCurrentPage={setCurrentPage} />}
+            {currentPage == "analysis" && <AnalysisPage report={report} setReport={setReport} setCurrentPage={setCurrentPage} />}
         </div>
     );
 }

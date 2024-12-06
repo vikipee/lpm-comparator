@@ -1,4 +1,4 @@
-from .conformance_computation import compute_conformance_measures
+from .conformance_computation import compute_conformance_measures, compute_coverage
 from .similarity_computation import compute_similarity_measures
 from .aggregation import get_aggregated_measures
 from typing import List, Optional
@@ -24,7 +24,7 @@ def calculate_report(
 
     if event_log is not None:
         yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing coverage...'})}\n\n"
-        report["coverage"] = compute_conformance_measures(set_a, set_b, event_log)
+        report["coverage"] = compute_coverage(set_a, set_b, event_log)
         print("Computed coverage")
 
         yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing conformance...'})}\n\n"
@@ -33,7 +33,8 @@ def calculate_report(
 
         yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing aggregations...'})}\n\n"
         matchings = similarity_report["matchings"]
-        report["aggregation"] = get_aggregated_measures(set_a, set_b, matchings, measure="fitness")
+        report["fitness_aggregation"] = get_aggregated_measures(set_a, set_b, matchings, measure="fitness")
+        report["precision_aggregation"] = get_aggregated_measures(set_a, set_b, matchings, measure="precision")
         print("Computed aggregations")
 
     save_computations(session_id, set_a, set_b, event_log, report)

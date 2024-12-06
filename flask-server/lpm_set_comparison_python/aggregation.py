@@ -107,4 +107,9 @@ def compute_rank_aggregation(LPMs_a: LPMSet, LPMs_b: LPMSet, measure = "fitness"
     normalized_rank_sum_a = rank_sum_a / len(LPMs_a.lpms)
     normalized_rank_sum_b = rank_sum_b / len(LPMs_b.lpms)
 
-    return (rank_sum_a, rank_sum_b, normalized_rank_sum_a, normalized_rank_sum_b)
+    return {
+        "rank_sum_a": rank_sum_a,
+        "rank_sum_b": rank_sum_b,
+        "normalized_rank_sum_a": normalized_rank_sum_a,
+        "normalized_rank_sum_b": normalized_rank_sum_b
+    }
