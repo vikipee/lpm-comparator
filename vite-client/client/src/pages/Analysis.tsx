@@ -17,28 +17,17 @@ export default function AnalysisPage({
     setCurrentPage: (page: "start" | "upload" | "analysis") => void;
   }){
 
-    const {toast} = useToast();
-
-    useEffect(() => {
-        console.log("Fetch report");
-        fetchReport();
-    }, []);
-
-    const fetchReport = async () => {
-        axios.get<ReportData>('/api/report/current').then((rep) => {
-            setReport(rep.data);
-            console.log(report)
-        }).catch((error) => {
-          toast({
-            title: "Error",
-            description: "Failed to fetch report",
-            variant: "destructive"
-          });
-        });
-    }
-
     const exportResults = () => {
         console.log("Exporting results");
+    }
+
+    const resetSession = async (nextPage: "start" | "upload") => {
+        try {
+          await axios.delete('/api/report');
+        } catch (error) {
+          console.error("Failed to reset session", error);
+        }
+        setCurrentPage(nextPage);
     }
 
     return (
@@ -66,7 +55,7 @@ export default function AnalysisPage({
               <Button size="lg">Start new analysis</Button>}
               title={"Are you sure you want to start again?"}
               description={"This will clear all computed results and start the process from the beginning."}
-              onAction={() => setCurrentPage("start")}
+              onAction={() => resetSession("start")}
             />
             <Button onClick={exportResults} size="lg">
               <Download className="mr-2 h-4 w-4" /> Export Results
@@ -75,7 +64,7 @@ export default function AnalysisPage({
               <Button size="lg">Edit upload</Button>}
               title={"Are you sure you want to edit the uploaded files?"}
               description={"This will clear all computed results."}
-              onAction={() => setCurrentPage("upload")}
+              onAction={() => resetSession("upload")}
             />
           </div>
         </>

@@ -1,8 +1,9 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import StartPage from "./Start"
 import UploadPage from "./Upload"
 import AnalysisPage from "./Analysis"
 import {FileInfo, ReportData} from "@/types/FileInfo"
+import axios from "axios"
 
 type Page = "start" | "upload" | "analysis"
 
@@ -15,6 +16,21 @@ export default function Main(){
     const [lpmsRight, setLpmsRight] = useState<FileInfo[]>([]);
 
     const [report, setReport] = useState<ReportData | null>(null);
+
+    useEffect(() => {
+        console.log("Fetch report");
+        fetchReport();
+    }, []);
+
+    const fetchReport = async () => {
+        axios.get<ReportData>('/api/report/current').then((rep) => {
+            setReport(rep.data);
+            console.log(report)
+            setCurrentPage("analysis")
+        }).catch((error) => {
+          
+        });
+    }
 
 
     return(

@@ -34,6 +34,12 @@ def load_computations(session_id):
 
     return lpmset_a, lpmset_b, event_log, report
 
+def delete_files(session_id):
+    if os.path.exists(f"uploads/{session_id}"):
+        for file in os.listdir(f"uploads/{session_id}"):
+            os.remove(f"uploads/{session_id}/{file}")
+        os.rmdir(f"uploads/{session_id}")
+
 def write_file(type:FileType, content, session_id, is_json):
     """
         First check if the file for the session exists, if it does, overwrite it.

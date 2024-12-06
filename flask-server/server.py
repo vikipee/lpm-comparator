@@ -3,7 +3,7 @@ from flask_session import Session
 from file_importer import convert_files
 from lpm_set_comparison_python.main import calculate_report
 import secrets
-from file_storage import save_computations, load_computations, load_report
+from file_storage import save_computations, load_computations, load_report, delete_files
 
 app = Flask(__name__)
 
@@ -11,7 +11,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_THRESHOLD'] = 100
 Session(app)
 
-@app.route('/api/upload', methods=['POST', 'GET'])
+@app.route('/api/upload', methods=['POST'])
 def upload_files():
     pnml_files_side_a = request.files.getlist('pnml_side_a')
     pnml_files_side_b = request.files.getlist('pnml_side_b')
@@ -61,6 +61,14 @@ def get_report():
     if report is None:
         return jsonify({"error": "No report found"}), 404
     return jsonify(report)
+
+@app.route('/api/report', methods=['DELETE'])
+def reset_report():
+    session_id = session.get('id')
+    if session_id is not None:
+        delete_files(session_id)
+    session.clear()
+    return jsonify({"message": "Session cleared"})
 
 if __name__ == '__main__':
     app.run(debug=True)
