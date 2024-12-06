@@ -1,15 +1,12 @@
 import { CustomAlertDialog } from "@/components/AlertDialog";
 import { Button } from "@/components/ui/button";
-import { ReportData } from "@/types/FileInfo";
+import { ExportFile } from "@/types/Export";
+import { ReportData } from "@/types/Report";
 import axios from "axios";
 import { Download } from "lucide-react";
-import { useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
-
 
 export default function AnalysisPage({
     report,
-    setReport,
     setCurrentPage,
   }: {
     report: ReportData | null;
@@ -17,8 +14,25 @@ export default function AnalysisPage({
     setCurrentPage: (page: "start" | "upload" | "analysis") => void;
   }){
 
-    const exportResults = () => {
+    const exportResults = async () => {
         console.log("Exporting results");
+        try{
+          const exportReport = await axios.get<ExportFile>('/api/export');
+          const data = exportReport.data;
+          //Let the user download the file
+          const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a")
+          a.href = url
+          a.download = "analysis_results.json"
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+        }
+        catch(error){
+          console.error("Failed to export results", error);
+        }
     }
 
     const resetSession = async (nextPage: "start" | "upload") => {

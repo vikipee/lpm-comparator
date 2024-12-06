@@ -3,7 +3,7 @@ from flask_session import Session
 from file_importer import convert_files
 from lpm_set_comparison_python.main import calculate_report
 import secrets
-from file_storage import save_computations, load_computations, load_report, delete_files
+from file_storage import get_export_json, import_json, save_computations, load_computations, load_report, delete_files
 
 app = Flask(__name__)
 
@@ -54,12 +54,12 @@ def compute_report():
 def get_report():
     session_id = session.get('id')
     if session_id is None:
-        return jsonify({"error": "No session found"}), 404
+        return jsonify({"message": "No session found"})
     
     report = load_report(session_id)
 
     if report is None:
-        return jsonify({"error": "No report found"}), 404
+        return jsonify({"message": "No report found"})
     return jsonify(report)
 
 @app.route('/api/report', methods=['DELETE'])
@@ -69,6 +69,35 @@ def reset_report():
         delete_files(session_id)
     session.clear()
     return jsonify({"message": "Session cleared"})
+
+@app.route('/api/export', methods=['GET'])
+def export_report():
+    session_id = session.get('id')
+    if session_id is None:
+        return jsonify({"error": "No session found"}), 404
+    
+    try:
+        export = get_export_json(session_id)
+    except Exception as e:
+        return jsonify({"error": "An error occurred while exporting the report"}), 500
+
+    return jsonify(export)
+
+@app.route('/api/import', methods=['POST'])
+def import_report():
+    session_id = session.get('id')
+    if session_id is None:
+        session_id = secrets.token_hex(16)
+        session['id'] = session_id
+    
+    try:
+        exported_report =  request.json
+        report = import_json(session_id, exported_report)
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "An error occurred while importing the report"}), 500
+
+    return jsonify(report)
 
 if __name__ == '__main__':
     app.run(debug=True)

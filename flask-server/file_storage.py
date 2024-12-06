@@ -3,7 +3,7 @@ import json
 from lpm_set_comparison_python.lpm import LPMSet
 from enum import Enum
 import pickle
-
+import base64
 
 class FileType(Enum):
     LPMSetA = 1
@@ -39,6 +39,40 @@ def delete_files(session_id):
         for file in os.listdir(f"uploads/{session_id}"):
             os.remove(f"uploads/{session_id}/{file}")
         os.rmdir(f"uploads/{session_id}")
+
+def get_string_from_binary(binary):
+    return base64.b64encode(binary).decode("ascii")
+
+def get_binary_from_string(string):
+    return base64.b64decode(string)
+
+def get_export_json(session_id):
+    serialized_lpms_a = read_file(FileType.LPMSetA, session_id, is_json=False)
+    serialized_lpms_b = read_file(FileType.LPMSetB, session_id, is_json=False)
+    serialized_event_log = read_file(FileType.LOG, session_id, is_json=False)
+    report = read_file(FileType.REPORT, session_id, is_json=True)
+
+    return {
+        "report": report,
+        "lpmset_a": get_string_from_binary(serialized_lpms_a),
+        "lpmset_b": get_string_from_binary(serialized_lpms_b),
+        "event_log": get_string_from_binary(serialized_event_log)
+    }
+
+def import_json(session_id, json_data):
+    lpmset_a = get_binary_from_string(json_data["lpmset_a"])
+    lpmset_b = get_binary_from_string(json_data["lpmset_b"])
+    event_log = get_binary_from_string(json_data["event_log"])
+    report = json_data["report"]
+
+    print("Imported report: ", report)
+
+    write_file(FileType.LPMSetA, lpmset_a, session_id, is_json=False)
+    write_file(FileType.LPMSetB, lpmset_b, session_id, is_json=False)
+    write_file(FileType.LOG, event_log, session_id, is_json=False)
+    write_file(FileType.REPORT, report, session_id, is_json=True)
+
+    return report
 
 def write_file(type:FileType, content, session_id, is_json):
     """
