@@ -3,7 +3,6 @@ import Main from './pages/Main'
 import Footer from './pages/Footer'
 import Header from './pages/Header'
 import { Toaster } from '@/components/ui/toaster'
-import FileUpload from './components/Fileuploadold'
 
 function App() {
   
