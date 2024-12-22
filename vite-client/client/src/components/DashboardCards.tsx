@@ -2,7 +2,7 @@ import { ReportData, SimilarityMeasures } from "@/types/Report";
 import { Card, CardTitle, CardContent, CardHeader } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, LabelList, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import {
   ChartConfig,
   ChartContainer,
@@ -11,8 +11,6 @@ import {
 } from "@/components/ui/chart"
 import { Aggregation } from "@/types/Report"
 import { RadialBar, RadialBarChart } from "recharts"
-
-//type AggregationMethod = "weighted_harmonic_mean" | "arithmetic_avg" | "geometric_mean" | "harmonic_mean" | "weighted_arithmetic_avg" | "weighted_geometric_mean";
 
 export const ConformanceCard = ({report}:{report:ReportData;}) => {
 
@@ -140,15 +138,83 @@ export const CoverageCard = ({report}:{report:ReportData;}) => {
     );
 }
 
-export const CardinalityCard = ({report}:{report:ReportData;}) => {
+const Circle = ({ fraction, set }: {fraction: number; set: number}) => {
+    const degrees = fraction * 360;
 
+    const color = set === 1 ? "hsl(var(--chart-2))" : "hsl(var(--chart-3))";
+  
     return (
-        <Card className="p-4 h-64 overflow-auto">
-            <h3 className="text-lg font-semibold mb-2">Card 2</h3>
-            <p>Content for card 2</p>
-        </Card>
+      <div
+        className="w-2 h-2 rounded-full bg-gray-200 relative"
+        style={{
+          background: `conic-gradient(${color} 0deg, ${color} ${degrees}deg, transparent ${degrees}deg, transparent 360deg)`,
+        }}
+      ></div>
     );
-}
+  };
+  
+  export const CardinalityCard = ({report}:{report:ReportData;}) => {
+    const setA = report.lpms_a.length;
+    const setB = report.lpms_b.length;
+  
+    const maxCardinality = Math.max(setA, setB);
+    const instancesPerCircle = Math.ceil(maxCardinality / 100);
+  
+    const circlesA = setA / instancesPerCircle;
+    const circlesB = setB / instancesPerCircle;
+  
+    const fullCirclesA = Math.floor(circlesA);
+    const lastCircleFractionA = circlesA - fullCirclesA;
+  
+    const fullCirclesB = Math.floor(circlesB);
+    const lastCircleFractionB = circlesB - fullCirclesB;
+  
+    // Prepare data for Set A
+    const circlesDataA = [];
+    for (let i = 0; i < fullCirclesA; i++) {
+      circlesDataA.push({ fraction: 1 });
+    }
+    if (lastCircleFractionA > 0) {
+      circlesDataA.push({ fraction: lastCircleFractionA });
+    }
+  
+    // Prepare data for Set B
+    const circlesDataB = [];
+    for (let i = 0; i < fullCirclesB; i++) {
+      circlesDataB.push({ fraction: 1 });
+    }
+    if (lastCircleFractionB > 0) {
+      circlesDataB.push({ fraction: lastCircleFractionB });
+    }
+  
+    return (
+        <Card className="h-64 flex flex-col">
+        <CardHeader>
+            <CardTitle className="text-lg font-semibold">Cardinality</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex h-4/6 pt-0">
+          <div className="flex-1 flex flex-col items-center h-5/6">
+          <h4 className="font-bold mb-2">Set A: {setA}</h4>
+            <div className="grid grid-cols-10 gap-1 h-fit">
+              {circlesDataA.map((circle, index) => (
+                <Circle key={index} fraction={circle.fraction} set={1}/>
+              ))}
+            </div>
+          </div>
+          <div className="w-0.5 bg-gray-200 mx-2 relative">
+          </div>
+          <div className="flex-1 flex flex-col items-center h-5/6">
+          <h4 className="font-bold mb-2">Set B: {setB}</h4>
+            <div className="grid grid-cols-10 gap-1 h-fit">
+              {circlesDataB.map((circle, index) => (
+                <Circle key={index} fraction={circle.fraction} set={2} />
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
 export const SimilarityCard = ({report}:{report:ReportData;}) => {
     
@@ -156,20 +222,17 @@ export const SimilarityCard = ({report}:{report:ReportData;}) => {
 
     const [similarityMeasure, setSimilarityMeasure] = useState<SimilarityMeasure>("trace_similarity" as SimilarityMeasure);
 
-    // Extract the similarity data for the selected measure
-  const similarityData = report.similarity?.[similarityMeasure];
+    const similarityData = report.similarity?.[similarityMeasure];
   
-  // Get the overall similarity value, ensuring it's a number
-  const similarityValue =
-    typeof similarityData === 'object' && typeof similarityData.overall === 'number'
-      ? similarityData.overall
-      : 0;
+    const similarityValue =
+        typeof similarityData === 'object' && typeof similarityData.overall === 'number'
+        ? similarityData.overall
+        : 0;
   
-  // Convert to percentage and round
-  const percentage = Math.round(similarityValue * 100);
+  const percentage = Math.round(similarityValue * 10000)/100;
 
     return (
-        <Card className="p-4 h-64 overflow-auto">
+        <Card className="h-64 overflow-auto">
             <CardHeader>
             <CardTitle className="text-lg font-semibold">Similarity</CardTitle>
             <Select onValueChange={(v) => setSimilarityMeasure(v as SimilarityMeasure)} defaultValue={similarityMeasure}>
@@ -183,7 +246,7 @@ export const SimilarityCard = ({report}:{report:ReportData;}) => {
             </SelectContent>
             </Select>
         </CardHeader>
-        <CardContent className="flex-1 flex items-center justify-center">
+        <CardContent className="flex-1 flex items-center justify-center h-3/6">
         <p className="text-6xl font-bold">
           {percentage}%
         </p>
@@ -193,13 +256,114 @@ export const SimilarityCard = ({report}:{report:ReportData;}) => {
 
 }
 
-export const EvaluationCard = ({report}:{report:ReportData;}) => {
-    
+export const EvaluationCard = ({ report }: { report: ReportData }) => {
+    const setAWins = 6;
+    const setBWins = 7;
+  
+    const totalWins = setAWins + setBWins;
+    const winningThreshold = Math.ceil(totalWins / 2);
+  
+    // Determine the winner
+    let winner: 'A' | 'B' | null = null;
+    if (setAWins > setBWins) {
+      winner = 'A';
+    } else if (setBWins > setAWins) {
+      winner = 'B';
+    } else {
+      winner = null; // Draw
+    }
+  
+    // Prepare data for the chart
+    const chartData = [
+      {
+        name: 'Wins',
+        'Set A': setAWins,
+        'Set B': setBWins,
+      },
+    ];
+  
+    // Styles for Set A and Set B Texts
+    const getSetTextStyle = (set: 'A' | 'B') => {
+      if (winner === set) {
+        const borderColor = set === 'A' ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-3))';
+        return {
+          borderColor: borderColor,
+          borderWidth: '2px',
+          borderStyle: 'solid',
+          borderRadius: '9999px',
+          padding: '0.25rem 0.75rem',
+          whiteSpace: 'nowrap',
+        };
+      } else {
+        return {};
+      }
+    };
+  
     return (
-        <Card className="p-4 h-64 overflow-auto">
-            <h3 className="text-lg font-semibold mb-2">Card 4</h3>
-            <p>Content for card 4</p>
-        </Card>
-    );
+      <Card className="h-64 flex flex-col">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Evaluation</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col justify-start">
+          <div className="flex items-center justify-between px-4">
+            <div
+              className="text-xl font-bold"
+              style={getSetTextStyle('A')}
+            >
+              Set A
+            </div>
+            <div
+              className="text-xl font-bold"
+              style={getSetTextStyle('B')}
+            >
+              Set B
+            </div>
+          </div>
+          <div className="flex-1 flex px-4 mt-0">
+            <ResponsiveContainer width="100%" height={90}>
+              <BarChart
+                data={chartData}
+                layout="vertical"
+                margin={{ top: 5, right: 0, bottom: 25, left: 0 }}
+              >
+                <XAxis type="number" hide domain={[0, totalWins]} />
+                <YAxis type="category" dataKey="name" hide />
+                <Tooltip
+                  formatter={(value, name) => [`${value} wins`, name]}
+                  labelFormatter={() => ''}
+                />
+                <Bar
+                  dataKey="Set A"
+                  stackId="a"
+                  fill="hsl(var(--chart-2))"
+                  radius={[4, 0, 0, 4]}
+                  isAnimationActive={true}
+                />
+                <Bar
+                  dataKey="Set B"
+                  stackId="a"
+                  fill="hsl(var(--chart-3))"
+                  radius={[0, 4, 4, 0]}
+                  isAnimationActive={true}
+                />
+                <ReferenceLine
+                  x={winningThreshold}
+                  stroke="black"
+                  strokeDasharray="3 3"
+                  label={{
+                    position: 'bottom',
+                    value: `Winning Threshold: ${winningThreshold}`,
+                    fill: 'black',
+                    fontSize: 12,
+                    dy: 5, 
 
-}
+                  }}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+  
