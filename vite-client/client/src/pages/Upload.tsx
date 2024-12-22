@@ -113,14 +113,14 @@ export default function UploadPage({
             <>
             <EventLogUpload eventLog={eventLog} setEventLog={setEventLog} />
             <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mb-4">
-              <Card className="flex-1">
+              <Card className="flex-1" style={{ borderTop: `3px solid hsl(var(--chart-2))` }}>
                 <CardContent className="pt-6">
-                  <PetriNetUpload side="Left" files={lpmsLeft} setFiles={setLpmsLeft} />
+                  <PetriNetUpload side="Left" color="hsl(var(--chart-2))" files={lpmsLeft}  setFiles={setLpmsLeft} />
                 </CardContent>
               </Card>
-              <Card className="flex-1">
+              <Card className="flex-1" style={{ borderTop: `3px solid hsl(var(--chart-3))` }}>
                 <CardContent className="pt-6">
-                <PetriNetUpload side="Right" files={lpmsRight} setFiles={setLpmsRight} />
+                <PetriNetUpload side="Right" color="hsl(var(--chart-3))" files={lpmsRight} setFiles={setLpmsRight}/>
                 </CardContent>
               </Card>
             </div>

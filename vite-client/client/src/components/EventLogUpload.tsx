@@ -26,7 +26,7 @@ export default function EventLogUpload({
           };
 
     return (
-        <Card className="mb-4">
+        <Card className="mb-4" style={{ borderTop: `3px solid hsl(240 5% 64.9%)`}}>
         <CardHeader>
           <CardTitle>Event Log</CardTitle>
         </CardHeader>

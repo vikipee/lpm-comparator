@@ -8,11 +8,13 @@ export default function PetriNetUpload(
     {
         side,
         files,
+        color,
         setFiles,
     }:
     {
         side: "Left" | "Right",
         files: FileInfo[],
+        color: string,
         setFiles: (files: FileInfo[]) => void,
     }
 ){
@@ -51,7 +53,7 @@ export default function PetriNetUpload(
         />
         <ScrollArea className="h-[calc(100vh-400px)]">
           {files.map((file) => (
-            <div key={file.id} className="flex items-center justify-between p-2 hover:bg-gray-100 rounded">
+            <div key={file.id} className="flex items-center justify-between px-2 py-1 my-2 hover:bg-gray-100 rounded" style={{ borderLeft: `2px solid ${color} ` }}>
               <Button
                 variant="ghost"
                 className="w-full justify-start">
