@@ -5,7 +5,7 @@ import { ExportFile } from "@/types/Export";
 import { FileInfo } from "@/types/FileInfo";
 import { ReportData } from "@/types/Report";
 import axios from "axios";
-import { Download } from "lucide-react";
+import { ChevronLeft, Download } from "lucide-react";
 import { useState } from "react";
 import AnalysisOverview from "@/pages/analysis/DashboardCards"; 
 import LpmList from "@/pages/analysis/LpmList";
@@ -29,7 +29,7 @@ export default function AnalysisPage({
     setLpmsRight: (lpmsRight: FileInfo[]) => void;
     setCurrentPage: (page: "start" | "upload" | "analysis") => void;
   }){
-    const [currentAnalysisPage, setCurrentAnalysisPage] = useState<AnalysisPage>("overview");
+    const [currentAnalysisPage, setCurrentAnalysisPage] = useState("overview");
 
     const [isExporting, setIsExporting] = useState(false)
 
@@ -105,22 +105,33 @@ export default function AnalysisPage({
           </div>
           </>
           ) : (
-            <div className="flex flex-col">
-          <Tabs className="w-full" defaultValue={currentAnalysisPage}>
+            <div className="container mx-auto p-4 pt-12 md:pt-4">
+      <div className="flex flex-col md:flex-row items-center">
+        <Button variant="ghost" onClick={goBack} className="mb-4 md:mb-0 md:mr-4 md:absolute md:top-4 md:left-4 hover:bg-gray-200">
+          <ChevronLeft className="mr-2 h-4 w-4" /> Back
+        </Button>
+        <Tabs value={currentAnalysisPage} onValueChange={setCurrentAnalysisPage} className="flex-grow w-full md:w-auto">
           <div className="flex justify-center">
-            <TabsList className="bg-gray-200 w-max">
-              <TabsTrigger value="list" onClick={() => setCurrentAnalysisPage("list")}>LPM List</TabsTrigger>
+            <TabsList className="w-full bg-gray-200 md:w-auto">
+              <TabsTrigger value="list">LPM List</TabsTrigger>
               <TabsTrigger value="conformance">Conformance</TabsTrigger>
               <TabsTrigger value="similarity">Similarity</TabsTrigger>
               <TabsTrigger value="coverage">Coverage</TabsTrigger>
               <TabsTrigger value="evaluation">Evaluation</TabsTrigger>
               <TabsTrigger value="setRelation">Set Relationship</TabsTrigger>
             </TabsList>
-            </div>
-            <TabsContent value="list"><LpmList report={report} goBack={goBack}></LpmList></TabsContent>
-            <TabsContent value="conformance">Change your password here.</TabsContent>
-          </Tabs>
           </div>
+          <TabsContent value="list" className="mt-4">
+            <LpmList report={report} />
+          </TabsContent>
+          <TabsContent value="conformance">Conformance content</TabsContent>
+          <TabsContent value="similarity">Similarity content</TabsContent>
+          <TabsContent value="coverage">Coverage content</TabsContent>
+          <TabsContent value="evaluation">Evaluation content</TabsContent>
+          <TabsContent value="setRelation">Set Relationship content</TabsContent>
+        </Tabs>
+      </div>
+    </div>
           
         )
 
