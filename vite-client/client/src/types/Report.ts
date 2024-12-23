@@ -48,11 +48,12 @@ interface Evaluation {
     };
 }
 
-interface LocalProcessModel {
+export interface LocalProcessModel {
+    id: string;
     name: string;
-    fitness?: number;
-    precision?: number;
-    coverage?: number;
+    fitness: number;
+    precision: number;
+    coverage: number;
 }
 
 export interface ReportData {

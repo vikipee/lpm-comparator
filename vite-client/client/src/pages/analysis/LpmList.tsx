@@ -1,66 +1,19 @@
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Slider } from "@/components/ui/slider"
-import { ChevronDown, ChevronUp, Filter, SortAsc, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react'
-import { ReportData } from '@/types/Report'
-
-type LPM = {
-  id: number
-  name: string
-  fitness: number
-  precision: number
-  coverage: number
-}
+import LPMDialog from "@/components/LPMDialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
+import { ReportData, LocalProcessModel, SimilarityMeasures } from "@/types/Report";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Filter, RotateCcw, SortAsc } from "lucide-react";
+import { useState } from "react";
 
 type SortOption = 'name' | 'fitness' | 'precision' | 'coverage'
 type SortOrder = 'asc' | 'desc'
 
-const generateMockData = (count: number): LPM[] => {
-  return Array.from({ length: count }, (_, i) => ({
-    id: i + 1,
-    name: `LPM Model ${i + 1}`,
-    fitness: Math.random(),
-    precision: Math.random(),
-    coverage: Math.random(),
-  }))
-}
 
-const LpmCard = ({ 
-  lpms, 
-  currentPage, 
-  setCurrentPage, 
-  totalPages,
-  sortBy,
-  sortOrder,
-  onSortChange,
-  onFilterChange,
-  filterValues,
-  onResetFilters,
-  color
-}: { 
-  lpms: LPM[], 
-  currentPage: number, 
-  setCurrentPage: (page: number) => void, 
-  totalPages: number,
-  sortBy: SortOption,
-  sortOrder: SortOrder,
-  onSortChange: (option: SortOption, order: SortOrder) => void,
-  onFilterChange: (metric: Exclude<SortOption, 'name'>, values: [number, number]) => void,
-  filterValues: Record<Exclude<SortOption, 'name'>, [number, number]>,
-  onResetFilters: () => void,
-  color: string
-}) => {
-  const [selectedLpm, setSelectedLpm] = useState<LPM | null>(null)
-
-  return (
-    <Card className="h-[600px] flex flex-col" style={{ borderTop: `3px solid ${color}` }}>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>{color === 'hsl(181, 97%, 38%)' ? 'Set A' : 'Set B'}</CardTitle>
-        <div className="flex space-x-2">
-          <Popover>
+const SortPopover = ({onSortChange, sortBy, sortOrder}: {onSortChange: (option: SortOption, order: SortOrder) => void; sortBy: SortOption; sortOrder: SortOrder}) => {
+    return (
+        <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="icon">
                 <SortAsc className="h-4 w-4" />
@@ -94,7 +47,12 @@ const LpmCard = ({
               </div>
             </PopoverContent>
           </Popover>
-          <Popover>
+    );
+};
+
+const FilterPopover = ({onFilterChange, filterValues, resetFilters}: {onFilterChange: (metric: Exclude<SortOption, 'name'>, value: [number, number]) => void; filterValues: Record<Exclude<SortOption, 'name'>, [number, number]>; resetFilters: () => void;}) => {
+    return (
+        <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="icon">
                 <Filter className="h-4 w-4" />
@@ -119,18 +77,95 @@ const LpmCard = ({
                     </div>
                   </div>
                 ))}
-                <Button onClick={onResetFilters} variant="outline" size="sm" className="w-full">
+                <Button onClick={resetFilters} variant="outline" size="sm" className="w-full">
                   <RotateCcw className="h-4 w-4 mr-2" />
                   Reset Filters
                 </Button>
               </div>
             </PopoverContent>
           </Popover>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-grow overflow-auto">
+    );
+};
+
+const LPMCard =  ({side, lpms, similarityMeasures}: {side: 1 | 2; lpms: LocalProcessModel[]; similarityMeasures: SimilarityMeasures}) => {
+
+    const title = side === 1 ? "Set A" : "Set B";
+    const color = side === 1 ? "hsl(var(--chart-2))" : "hsl(var(--chart-3))";
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [sortBy, setSortBy] = useState<SortOption>('name');
+    const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+    const [filterValues, setFilterValues] = useState<Record<Exclude<SortOption, 'name'>, [number, number]>>({
+        fitness: [0, 1],
+        precision: [0, 1],
+        coverage: [0, 1]
+    });
+
+    const resetFilters = () => {
+        setFilterValues({
+          fitness: [0, 1],
+          precision: [0, 1],
+          coverage: [0, 1]
+        })
+    };
+
+    const [selectedLpm, setSelectedLpm] = useState<LocalProcessModel | null>(null)
+
+    const itemsPerPage = 50;
+
+    const sortAndFilterLpms = (lpms: LocalProcessModel[]) => {
+        return lpms
+            .filter(lpm => 
+                lpm.fitness >= filterValues.fitness[0] && lpm.fitness <= filterValues.fitness[1] &&
+                lpm.precision >= filterValues.precision[0] && lpm.precision <= filterValues.precision[1] &&
+                lpm.coverage >= filterValues.coverage[0] && lpm.coverage <= filterValues.coverage[1]
+            )
+            .sort((a, b) =>{
+                if (sortBy === 'name') {
+                    return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+                } else {
+                    return sortOrder === 'asc' ? a[sortBy] - b[sortBy] : b[sortBy] - a[sortBy];
+                }
+            });
+    };
+
+    const paginateLpms = (lpms: LocalProcessModel[]) => {
+        const startIndex = (currentPage - 1) * itemsPerPage
+        return lpms.slice(startIndex, startIndex + itemsPerPage)
+    };
+
+    const sortedAndFilteredLpms = sortAndFilterLpms(lpms);
+    const totalPages = Math.ceil(sortedAndFilteredLpms.length / itemsPerPage);
+
+    if (currentPage > totalPages) {
+        setCurrentPage(totalPages);
+    }
+
+    const paginatedLpms = paginateLpms(sortedAndFilteredLpms);
+
+
+
+    return (
+        <Card className="h-[600px] flex flex-col" style={{ borderTop: `3px solid ${color}`}}>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>{title}</CardTitle>
+                <div className="flex space-x-2">
+                    <SortPopover onSortChange={(option, order) => {
+                        setSortBy(option);
+                        setSortOrder(order);
+                    }} sortBy={sortBy} sortOrder={sortOrder} />
+                    <FilterPopover onFilterChange={(metric, value) => {
+                        setFilterValues({
+                            ...filterValues,
+                            [metric]: value
+                        });
+                    }} filterValues={filterValues} resetFilters={resetFilters} />
+                
+                </div>
+            </CardHeader>
+            <CardContent className="flex-grow overflow-auto">
         <ul className="space-y-2">
-          {lpms.map(lpm => (
+          {paginatedLpms.map(lpm => (
             <li 
               key={lpm.id} 
               className="flex justify-between items-center p-2 hover:bg-accent cursor-pointer rounded" 
@@ -145,7 +180,7 @@ const LpmCard = ({
           ))}
         </ul>
       </CardContent>
-      <div className="flex justify-center items-center p-4 border-t space-x-2">
+      <CardFooter className="flex justify-center items-center p-4 border-t space-x-2">
         <Button 
           variant="outline" 
           size="sm" 
@@ -179,111 +214,27 @@ const LpmCard = ({
           Next
           <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
-      </div>
-      <Dialog open={!!selectedLpm} onOpenChange={() => setSelectedLpm(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedLpm?.name}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            <p>Fitness: {selectedLpm?.fitness.toFixed(4)}</p>
-            <p>Precision: {selectedLpm?.precision.toFixed(4)}</p>
-            <p>Coverage: {selectedLpm?.coverage.toFixed(4)}</p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </Card>
-  )
-}
+      </CardFooter>
+      <LPMDialog selectedLpm={selectedLpm} setSelectedLpm={setSelectedLpm} similarityMeasures={similarityMeasures} />
+        </Card>
+    );
+};
 
 export default function LpmList({report}: {report: ReportData}) {
-  const [lpmSet1] = useState(generateMockData(100))
-  const [lpmSet2] = useState(generateMockData(100))
-  const [currentPage1, setCurrentPage1] = useState(1)
-  const [currentPage2, setCurrentPage2] = useState(1)
-  const [sortBy1, setSortBy1] = useState<SortOption>('name')
-  const [sortBy2, setSortBy2] = useState<SortOption>('name')
-  const [sortOrder1, setSortOrder1] = useState<SortOrder>('asc')
-  const [sortOrder2, setSortOrder2] = useState<SortOrder>('asc')
-  const [filterValues1, setFilterValues1] = useState<Record<Exclude<SortOption, 'name'>, [number, number]>>({
-    fitness: [0, 1],
-    precision: [0, 1],
-    coverage: [0, 1]
-  })
-  const [filterValues2, setFilterValues2] = useState<Record<Exclude<SortOption, 'name'>, [number, number]>>({
-    fitness: [0, 1],
-    precision: [0, 1],
-    coverage: [0, 1]
-  })
 
-  const itemsPerPage = 50
-
-  const sortAndFilterLpms = (lpms: LPM[], sortBy: SortOption, sortOrder: SortOrder, filterValues: Record<Exclude<SortOption, 'name'>, [number, number]>) => {
-    return lpms
-      .filter(lpm => 
-        lpm.fitness >= filterValues.fitness[0] && lpm.fitness <= filterValues.fitness[1] &&
-        lpm.precision >= filterValues.precision[0] && lpm.precision <= filterValues.precision[1] &&
-        lpm.coverage >= filterValues.coverage[0] && lpm.coverage <= filterValues.coverage[1]
-      )
-      .sort((a, b) => {
-        if (sortBy === 'name') {
-          return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-        } else {
-          return sortOrder === 'asc' ? a[sortBy] - b[sortBy] : b[sortBy] - a[sortBy];
-        }
-      })
-  }
-
-  const paginateLpms = (lpms: LPM[], page: number) => {
-    const startIndex = (page - 1) * itemsPerPage
-    return lpms.slice(startIndex, startIndex + itemsPerPage)
-  }
-
-  const sortedAndFilteredLpms1 = sortAndFilterLpms(lpmSet1, sortBy1, sortOrder1, filterValues1)
-  const sortedAndFilteredLpms2 = sortAndFilterLpms(lpmSet2, sortBy2, sortOrder2, filterValues2)
-
-  const paginatedLpms1 = paginateLpms(sortedAndFilteredLpms1, currentPage1)
-  const paginatedLpms2 = paginateLpms(sortedAndFilteredLpms2, currentPage2)
-
-  const totalPages1 = Math.ceil(sortedAndFilteredLpms1.length / itemsPerPage)
-  const totalPages2 = Math.ceil(sortedAndFilteredLpms2.length / itemsPerPage)
-
-  const resetFilters = (setFilterValues: React.Dispatch<React.SetStateAction<Record<Exclude<SortOption, 'name'>, [number, number]>>>) => {
-    setFilterValues({
-      fitness: [0, 1],
-      precision: [0, 1],
-      coverage: [0, 1]
-    })
-  }
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <LpmCard 
-        lpms={paginatedLpms1} 
-        currentPage={currentPage1} 
-        setCurrentPage={setCurrentPage1} 
-        totalPages={totalPages1}
-        sortBy={sortBy1}
-        sortOrder={sortOrder1}
-        onSortChange={(option, order) => { setSortBy1(option); setSortOrder1(order); }}
-        onFilterChange={(metric, values) =>setFilterValues1(prev => ({ ...prev, [metric]: values }))}
-        filterValues={filterValues1}
-        onResetFilters={() => resetFilters(setFilterValues1)}
-        color="hsl(var(--chart-2))"
-      />
-      <LpmCard 
-        lpms={paginatedLpms2} 
-        currentPage={currentPage2} 
-        setCurrentPage={setCurrentPage2} 
-        totalPages={totalPages2}
-        sortBy={sortBy2}
-        sortOrder={sortOrder2}
-        onSortChange={(option, order) => { setSortBy2(option); setSortOrder2(order); }}
-        onFilterChange={(metric, values) => setFilterValues2(prev => ({ ...prev, [metric]: values }))}
-        filterValues={filterValues2}
-        onResetFilters={() => resetFilters(setFilterValues2)}
-        color="hsl(var(--chart-3))"
-      />
-    </div>
-  )
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <LPMCard 
+                    side={1}
+                    lpms={report.lpms_a}
+                    similarityMeasures={report.similarity ?? {}}
+                />
+                <LPMCard
+                    side={2}
+                    lpms={report.lpms_b}
+                    similarityMeasures={report.similarity ?? {}}
+                />
+            </div>
+        );
+    
 }
