@@ -40,6 +40,7 @@ def calculate_report(
         lpms_b = []
         for lpm in set_a.lpms:
             lpms_a.append({
+                "id": lpm.id,
                 "name": lpm.name,
                 "fitness": lpm.get_fitness(),
                 "precision": lpm.get_precision(),
@@ -47,6 +48,7 @@ def calculate_report(
             })
         for lpm in set_b.lpms:
             lpms_b.append({
+                "id": lpm.id,
                 "name": lpm.name,
                 "fitness": lpm.get_fitness(),
                 "precision": lpm.get_precision(),

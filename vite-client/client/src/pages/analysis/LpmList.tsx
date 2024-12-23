@@ -215,7 +215,7 @@ const LPMCard =  ({side, lpms, similarityMeasures}: {side: 1 | 2; lpms: LocalPro
           <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
       </CardFooter>
-      <LPMDialog selectedLpm={selectedLpm} setSelectedLpm={setSelectedLpm} similarityMeasures={similarityMeasures} />
+      <LPMDialog side={side} selectedLpm={selectedLpm} setSelectedLpm={setSelectedLpm} similarityMeasures={similarityMeasures} />
         </Card>
     );
 };

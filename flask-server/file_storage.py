@@ -36,9 +36,16 @@ def load_computations(session_id):
 
 def delete_files(session_id):
     if os.path.exists(f"uploads/{session_id}"):
+        os.chmod(f"uploads/{session_id}", 0o777)
+
+        if os.path.exists(f"uploads/{session_id}/svgs"):
+            os.chmod(f"uploads/{session_id}/svgs", 0o777)
+            for file in os.listdir(f"uploads/{session_id}/svgs"):
+                os.remove(f"uploads/{session_id}/svgs/{file}")
+            os.rmdir(f"uploads/{session_id}/svgs")
+
         for file in os.listdir(f"uploads/{session_id}"):
             os.remove(f"uploads/{session_id}/{file}")
-        os.chmod(f"uploads/{session_id}", 0o777)
         os.rmdir(f"uploads/{session_id}")
 
 def get_string_from_binary(binary):

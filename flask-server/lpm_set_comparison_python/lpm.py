@@ -1,13 +1,18 @@
 from typing import List
+import pm4py
+from pm4py.visualization.petri_net import visualizer as petrinet_visualizer
 from pm4py.objects.petri_net.obj import PetriNet, Marking
 from pm4py.algo.simulation.playout.petri_net.variants.extensive import apply as find_traces
 from pm4py.statistics.eventually_follows.log.get import apply as get_eventually_follows_dict
 import pickle
 import random
+import secrets
+import os
 
 # Define a custom class to hold the Petri net and its markings
 class LPM:
     def __init__(self, net: PetriNet, im: Marking, fm: Marking, name: str):
+        self.id = secrets.token_hex(32)
         self.net = net
         self.im = im
         self.fm = fm
@@ -23,7 +28,6 @@ class LPM:
 
     def __repr__(self):
         return f"LPM(net={self.net}, im={self.im}, fm={self.fm})"
-    
        
     def get_log(self):
         if self.log is None:
@@ -64,7 +68,17 @@ class LPM:
         if self.coverage is None:
             self.coverage = 3 #Adjust this line to compute the coverage of the LPM
         return self.coverage
+    
+    def get_vis(self, session_id):
+        svg_path = "uploads/"+ session_id + "/svgs/" + str(self.id) + ".svg"
+        
+        if not os.path.exists("uploads/"+ session_id + "/svgs"):
+            os.makedirs("uploads/"+ session_id + "/svgs")
+        
+        if not os.path.exists(svg_path):
+            pm4py.save_vis_petri_net(self.net, self.im, self.fm, svg_path)
 
+        return svg_path
 
 class LPMSet:
     def __init__(self, lpms: List[LPM]):
@@ -82,6 +96,12 @@ class LPMSet:
     @staticmethod
     def deserialize(serialized):
         return pickle.loads(serialized)
+    
+    def get_lpm_by_id(self, lpm_id):
+        for lpm in self.lpms:
+            if lpm.id == lpm_id:
+                return lpm
+        return None
     
     def get_traces(self):
         if self.combined_traces is None:

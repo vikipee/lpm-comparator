@@ -99,5 +99,27 @@ def import_report():
 
     return jsonify(report)
 
+@app.route('/api/petrinet/<int:side>/<string:lpm_id>', methods=['GET'])
+def get_petrinet_vis(side, lpm_id):
+    session_id = session.get('id')
+    if session_id is None:
+        return jsonify({"error": "No session found"}), 404
+    
+    lpmset_a, lpmset_b, _, _ = load_computations(session_id)
+    if side == 1:
+        lpm = lpmset_a.get_lpm_by_id(lpm_id)
+    else:
+        lpm = lpmset_b.get_lpm_by_id(lpm_id)
+    
+    if lpm is None:
+        return jsonify({"error": "LPM not found"}), 404
+    
+    path_to_svg = lpm.get_vis(session_id)
+
+    with open(path_to_svg, 'r', encoding='utf-8') as file:
+        svg_content = file.read()
+
+    return jsonify({"vis": svg_content})
+
 if __name__ == '__main__':
     app.run(debug=True)
