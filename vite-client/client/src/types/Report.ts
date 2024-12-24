@@ -54,6 +54,7 @@ export interface LocalProcessModel {
     fitness: number;
     precision: number;
     coverage: number;
+    index: number;
 }
 
 export interface ReportData {

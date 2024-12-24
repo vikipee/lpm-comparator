@@ -38,21 +38,23 @@ def calculate_report(
 
         lpms_a = []
         lpms_b = []
-        for lpm in set_a.lpms:
+        for i, lpm in enumerate(set_a.lpms):
             lpms_a.append({
                 "id": lpm.id,
                 "name": lpm.name,
                 "fitness": lpm.get_fitness(),
                 "precision": lpm.get_precision(),
-                "coverage": lpm.get_coverage()
+                "coverage": lpm.get_coverage(),
+                "index": i
             })
-        for lpm in set_b.lpms:
+        for i, lpm in enumerate(set_b.lpms):
             lpms_b.append({
                 "id": lpm.id,
                 "name": lpm.name,
                 "fitness": lpm.get_fitness(),
                 "precision": lpm.get_precision(),
-                "coverage": lpm.get_coverage()
+                "coverage": lpm.get_coverage(),
+                "index": i
             })
         report["lpms_a"] = lpms_a
         report["lpms_b"] = lpms_b

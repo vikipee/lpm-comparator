@@ -4,30 +4,36 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { PetriNetSkeleton } from '@/components/PetriNetSkeleton';
 import axios from 'axios';
 import { ReactSVG } from 'react-svg';
-import { LocalProcessModel } from '@/types/Report';
+import { LocalProcessModel, ReportData } from '@/types/Report';
+import { getSimilarLPMs } from '@/computation/similarity';
+
+type SimilarLPM = {
+  lpm_id: string;
+  name: string;
+  similarity: number;
+};
 
 export default function LPMDialog({
   side,
   setSide,
   selectedLpm,
   setSelectedLpm,
-  lpms_a,
-  lpms_b
+  report,
 }:{
   side: 1 | 2;
   setSide: (side: 1 | 2) => void;
   selectedLpm: LocalProcessModel | null;
   setSelectedLpm: (lpm: LocalProcessModel | null) => void;
-  lpms_a: LocalProcessModel[];
-  lpms_b: LocalProcessModel[];
+  report: ReportData;
 }) {
   const [vis, setVis] = useState<string | null>(null);
-  const [similarLPMs, setSimilarLPMs] = useState<Array<any>>([]);
+  const [similarLPMs, setSimilarLPMs] = useState<SimilarLPM[]>([]);
+
 
   useEffect(() => {
     if (selectedLpm) {
       fetchImage();
-      setSimilarLPMs([{lpm_id: "47f523a45215dcd4d922c01bad964937dcd021ecd12cb928d3191b0fc5d061fa", name: 'LPM 1', similarity: 0.5}, {lpm_id: "2", name: 'LPM 2', similarity: 0.4}]);
+      fetchSimilarLPMs();
     }
     
   }, [selectedLpm]);
@@ -41,13 +47,20 @@ export default function LPMDialog({
     }
   };
 
+  const fetchSimilarLPMs = async () => {
+    if(!selectedLpm) return;
+
+    const similarLPMs = getSimilarLPMs(report, side, selectedLpm.index, 0.5);
+    setSimilarLPMs(similarLPMs);
+  }
+
   const handleSimilarLPMClick = (lpm_id: string) => {
     let lpm : LocalProcessModel | null = null;
 
     if (side === 1){
-      lpm = lpms_b.find((lpm) => lpm.id === lpm_id) || null;
+      lpm = report.lpms_b.find((lpm) => lpm.id === lpm_id) || null;
     } else {
-      lpm = lpms_a.find((lpm) => lpm.id === lpm_id) || null;
+      lpm = report.lpms_a.find((lpm) => lpm.id === lpm_id) || null;
     }
 
     if (lpm) {
@@ -106,7 +119,7 @@ export default function LPMDialog({
             <p>Coverage: {selectedLpm?.coverage.toFixed(4)}</p>
           </div>
           <div className="md:w-1/2">
-            <h3 className="text-lg font-semibold">Most Similar Models</h3>
+            <h3 className="text-lg font-semibold">Most Similar Models (Trace similarity)</h3>
             <ScrollArea className="h-48">
               {similarLPMs.length > 0 ? (
                 <ul className="space-y-2">

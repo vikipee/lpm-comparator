@@ -236,7 +236,7 @@ export default function LpmList({report}: {report: ReportData}) {
                     setSelectedSide={setSelectedSide}
                     setSelectedLpm={setSelectedLpm}
                 />
-                <LPMDialog side={selectedSide} setSide={setSelectedSide} selectedLpm={selectedLpm} setSelectedLpm={setSelectedLpm} lpms_a={report.lpms_a} lpms_b={report.lpms_b} />
+                <LPMDialog side={selectedSide} setSide={setSelectedSide} selectedLpm={selectedLpm} setSelectedLpm={setSelectedLpm} report={report} />
              
             </div> 
             );
