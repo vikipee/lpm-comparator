@@ -12,6 +12,7 @@ import {
 import { Aggregation } from "@/types/Report"
 import { RadialBar, RadialBarChart } from "recharts"
 import { AnalysisPage } from "@/pages/Analysis";
+import { SimilarityMeasure, SimilaritySelection } from "@/components/SimilaritySelection";
 
 export const ConformanceCard = ({ report, setAnalysisPage }: { report: ReportData;  setAnalysisPage: (page: AnalysisPage) => void; }) => {
 
@@ -237,8 +238,6 @@ const CardinalityCard = ({ report, setAnalysisPage }: { report: ReportData;  set
 };
 
 const SimilarityCard = ({ report, setAnalysisPage }: { report: ReportData;  setAnalysisPage: (page: AnalysisPage) => void; }) => {
-    
-    type SimilarityMeasure = keyof SimilarityMeasures;
 
     const [similarityMeasure, setSimilarityMeasure] = useState<SimilarityMeasure>("trace_similarity" as SimilarityMeasure);
 
@@ -262,16 +261,7 @@ const SimilarityCard = ({ report, setAnalysisPage }: { report: ReportData;  setA
             Similarity
           </button>
         </CardTitle>
-            <Select onValueChange={(v) => setSimilarityMeasure(v as SimilarityMeasure)} defaultValue={similarityMeasure}>
-                <SelectTrigger>
-                <SelectValue placeholder="Select similarity measure" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="trace_similarity">Trace similarity</SelectItem>
-                <SelectItem value="eventually_follows_similarity">Eventually Follows similarity</SelectItem>
-                <SelectItem value="trace_similarity_perfect">Perfect trace similarity</SelectItem>
-            </SelectContent>
-            </Select>
+        <SimilaritySelection similarityMeasure={similarityMeasure} setSimilarityMeasure={setSimilarityMeasure} />
         </CardHeader>
         <CardContent className="flex-1 flex items-center justify-center h-3/6">
         <p className="text-6xl font-bold">
