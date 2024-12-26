@@ -1,4 +1,4 @@
-import { ReportData, SimilarityMeasures } from "@/types/Report";
+import { ReportData } from "@/types/Report";
 import { Card, CardTitle, CardContent, CardHeader } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
@@ -13,16 +13,26 @@ import { Aggregation } from "@/types/Report"
 import { RadialBar, RadialBarChart } from "recharts"
 import { AnalysisPage } from "@/pages/Analysis";
 import { SimilarityMeasure, SimilaritySelection } from "@/components/SimilaritySelection";
+import { aggregate, aggregationMethod } from "@/computation/aggregation";
 
 export const ConformanceCard = ({ report, setAnalysisPage }: { report: ReportData;  setAnalysisPage: (page: AnalysisPage) => void; }) => {
 
-    type AggregationMethod = keyof Aggregation;
+    
 
-    const [aggregationMethod, setAggregationMethod] = useState<AggregationMethod>("weighted_harmonic_mean" as AggregationMethod);
+    const [aggregationMethod, setAggregationMethod] = useState<aggregationMethod>("weightedHarmonicMean");
+
+    const fitnessVals_A = report.lpms_a.map(lpm => lpm.fitness);
+    const fitnessVals_B = report.lpms_b.map(lpm => lpm.fitness);
+
+    const precisionVals_A = report.lpms_a.map(lpm => lpm.precision);
+    const precisionVals_B = report.lpms_b.map(lpm => lpm.precision);
+
+    const coverageVals_A = report.lpms_a.map(lpm => lpm.coverage);
+    const coverageVals_B = report.lpms_b.map(lpm => lpm.coverage);  
 
     const chartData = [
-        { measure: "Fitness", setA: report.fitness_aggregation?.[aggregationMethod]?.[0] ?? 0, setB: report.fitness_aggregation?.[aggregationMethod]?.[1] ?? 0 },
-        { measure: "Precision", setA: report.precision_aggregation?.[aggregationMethod]?.[0] ?? 0, setB: report.precision_aggregation?.[aggregationMethod]?.[1] ?? 0 },
+        { measure: "Fitness", setA: aggregate(aggregationMethod, fitnessVals_A, coverageVals_A), setB: aggregate(aggregationMethod, precisionVals_A, coverageVals_A) },
+        { measure: "Precision", setA: aggregate(aggregationMethod, fitnessVals_B, coverageVals_B), setB: aggregate(aggregationMethod, precisionVals_B, coverageVals_B) },
       ]
     
     const chartConfig = {
@@ -47,17 +57,17 @@ export const ConformanceCard = ({ report, setAnalysisPage }: { report: ReportDat
             Aggregated Conformance
           </button>
         </CardTitle>
-            <Select onValueChange={(v) => setAggregationMethod(v as AggregationMethod)} defaultValue={aggregationMethod}>
+            <Select onValueChange={(v) => setAggregationMethod(v as aggregationMethod)} defaultValue={aggregationMethod}>
                 <SelectTrigger>
                 <SelectValue placeholder="Select aggregation method" />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="weighted_harmonic_mean">Weighted Harmonic Mean</SelectItem>
-                <SelectItem value="arithmetic_avg">Arithmetic Average</SelectItem>
-                <SelectItem value="geometric_mean">Geometric Mean</SelectItem>
-                <SelectItem value="harmonic_mean">Harmonic Mean</SelectItem>
-                <SelectItem value="weighted_arithmetic_avg">Weighted Arithmetic Average</SelectItem>
-                <SelectItem value="weighted_geometric_mean">Weighted Geometric Mean</SelectItem>
+                <SelectItem value="weightedHarmonicMean">Weighted Harmonic Mean</SelectItem>
+                <SelectItem value="arithmeticMean">Arithmetic Average</SelectItem>
+                <SelectItem value="geometricMean">Geometric Mean</SelectItem>
+                <SelectItem value="harmonicMean">Harmonic Mean</SelectItem>
+                <SelectItem value="weightedArithmeticMean">Weighted Arithmetic Average</SelectItem>
+                <SelectItem value="weightedGeometricMean">Weighted Geometric Mean</SelectItem>
             </SelectContent>
             </Select>
         </CardHeader>
