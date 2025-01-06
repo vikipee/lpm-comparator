@@ -46,14 +46,20 @@ export const sortAndFilterLpms = (lpms: LocalProcessModel[], filterValues: Recor
             });
     };
 
-export const sortAndFilterTraceCoverages = (traces: TraceCoverage[], filterValues: Record<Exclude<TraceCoverageSortOption, 'trace'>, [number, number]>, sortBy: TraceCoverageSortOption, sortOrder: SortOrder) => { 
-    const filteredTraces = traces.filter(trace => 
-        trace.coverage_a >= filterValues.coverage_a[0] && trace.coverage_a
-        <= filterValues.coverage_a[1] &&
-        trace.coverage_b >= filterValues.coverage_b[0] && trace.coverage_b
-        <= filterValues.coverage_b[1]
-    );
-  
+export const sortAndFilterTraceCoverages = (traces: TraceCoverage[], filterValues: Record<Exclude<TraceCoverageSortOption, 'trace'>, [number, number]>, sortBy: TraceCoverageSortOption, sortOrder: SortOrder, searchQuery: string) => { 
+    const filteredTraces = traces.filter((trace) => {
+      const withinCoverageA =
+        trace.coverage_a >= filterValues.coverage_a[0] &&
+        trace.coverage_a <= filterValues.coverage_a[1];
+      const withinCoverageB =
+        trace.coverage_b >= filterValues.coverage_b[0] &&
+        trace.coverage_b <= filterValues.coverage_b[1];
+
+      const matchesSearch =
+        trace.trace.toLowerCase().includes(searchQuery.toLowerCase());
+
+      return withinCoverageA && withinCoverageB && matchesSearch;
+    });
     return filteredTraces.sort((a,b) => {
         if (sortBy === 'trace') {
             return sortOrder === 'asc' ? a.trace.localeCompare(b.trace) : b.trace.localeCompare(a.trace);
@@ -72,7 +78,7 @@ export const sortAndFilterTraceCoverages = (traces: TraceCoverage[], filterValue
     onSortChange: (option: TSortOption, order: SortOrder) => void;
     sortBy: TSortOption;
     sortOrder: SortOrder;
-    options: TSortOption[];
+    options: [TSortOption, string?][];
   };
 
   export function GenericSortPopover<TSortOption extends SortOptionType>({
@@ -91,22 +97,22 @@ export const sortAndFilterTraceCoverages = (traces: TraceCoverage[], filterValue
         <PopoverContent className="w-56">
           <div className="space-y-2">
             {options.map((option) => (
-              <div key={option} className="flex items-center justify-between">
-                <span className="capitalize">{option}</span>
+              <div key={option[0]} className="flex items-center justify-between">
+                <span className="capitalize">{option[1] ?? option[0]}</span>
                 <div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onSortChange(option, 'asc')}
-                    className={sortBy === option && sortOrder === 'asc' ? 'bg-accent' : ''}
+                    onClick={() => onSortChange(option[0], 'asc')}
+                    className={sortBy === option[0] && sortOrder === 'asc' ? 'bg-accent' : ''}
                   >
                     <ChevronUp className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onSortChange(option, 'desc')}
-                    className={sortBy === option && sortOrder === 'desc' ? 'bg-accent' : ''}
+                    onClick={() => onSortChange(option[0], 'desc')}
+                    className={sortBy === option[0] && sortOrder === 'desc' ? 'bg-accent' : ''}
                   >
                     <ChevronDown className="h-4 w-4" />
                   </Button>
@@ -123,7 +129,7 @@ export const sortAndFilterTraceCoverages = (traces: TraceCoverage[], filterValue
     onFilterChange: (metric: TFilterOption, value: [number, number]) => void;
     filterValues: Record<TFilterOption, [number, number]>;
     resetFilters: () => void;
-    options: TFilterOption[];
+    options: [TFilterOption, string?][];
   };
   
   export function GenericFilterPopover<TFilterOption extends string>({
@@ -142,19 +148,19 @@ export const sortAndFilterTraceCoverages = (traces: TraceCoverage[], filterValue
         <PopoverContent className="w-80">
           <div className="space-y-4">
             {options.map((metric) => (
-              <div key={metric} className="space-y-2">
-                <label className="text-sm font-medium capitalize">{metric}</label>
+              <div key={metric[0]} className="space-y-2">
+                <label className="text-sm font-medium capitalize">{metric[1] ?? metric[0]}</label>
                 <Slider
                   min={0}
                   max={1}
                   step={0.01}
-                  value={filterValues[metric]}
-                  onValueChange={(value) => onFilterChange(metric, value as [number, number])}
+                  value={filterValues[metric[0]]}
+                  onValueChange={(value) => onFilterChange(metric[0], value as [number, number])}
                   className="[&;_[role=slider]]:h-4 [&;_[role=slider]]:w-4 [&;_[role=slider]]:border-2"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{filterValues[metric][0].toFixed(2)}</span>
-                  <span>{filterValues[metric][1].toFixed(2)}</span>
+                  <span>{filterValues[metric[0]][0].toFixed(2)}</span>
+                  <span>{filterValues[metric[0]][1].toFixed(2)}</span>
                 </div>
               </div>
             ))}

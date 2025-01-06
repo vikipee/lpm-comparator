@@ -42,13 +42,13 @@ const LPMCard =  ({side, lpms, setSelectedSide, setSelectedLpm}: {side: 1 | 2; l
                     <GenericSortPopover onSortChange={(option, order) => {
                         setSortBy(option);
                         setSortOrder(order);
-                    }} sortBy={sortBy} sortOrder={sortOrder} options={['name', 'fitness', 'precision', 'coverage']}/>
+                    }} sortBy={sortBy} sortOrder={sortOrder} options={[['name'], ['fitness'], ['precision'], ['coverage']]}/>
                     <GenericFilterPopover onFilterChange={(metric, value) => {
                         setFilterValues({
                             ...filterValues,
                             [metric]: value
                         });
-                    }} filterValues={filterValues} resetFilters={() => setFilterValues(defaultLpmFilterValues)} options={['fitness', 'precision', 'coverage']}/>
+                    }} filterValues={filterValues} resetFilters={() => setFilterValues(defaultLpmFilterValues)} options={[['fitness'], ['precision'], ['coverage']]}/>
                 
                 </div>
             </CardHeader>

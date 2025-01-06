@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Table,
   TableBody,
@@ -13,35 +13,19 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Pagination, PaginationEllipsis } from '@/components/ui/pagination';
 import { ReportData } from '@/types/Report';
 import { defaultTraceCoverageFilterValues, GenericFilterPopover, GenericSortPopover, sortAndFilterTraceCoverages, SortOrder, TraceCoverageSortOption } from '@/components/SortAndFilter';
-
-// Generate random data of trace coverages
-const generateRandomData = (length: number) => {
-    //Data should be an array of objects with the following structure
-    // { trace: string, coverage_a: number, coverage_b: number }
-    let data = []
-    for (let i = 0; i < length; i++) {
-        const trace = Math.random().toString(36).substring(7);
-        const coverage_a = Math.random();
-        const coverage_b = Math.random();
-        data.push({ 'trace': trace, 'coverage_a': coverage_a, 'coverage_b': coverage_b });
-    }
-    return data;
-}   
-
-//const { trace_coverages_a, short_trace_strings, trace_coverages_b } = generateRandomData(1000)
+import { Input } from '@/components/ui/input';
 
 export default function CoverageTable({ report }: { report: ReportData }) {
     const [sortBy, setSortBy] = useState<TraceCoverageSortOption>('trace');
     const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
     const [filterValues, setFilterValues] = useState<Record<Exclude<TraceCoverageSortOption, 'trace'>, [number, number]>>(defaultTraceCoverageFilterValues);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 50
 
     const [scrollbarWidth, setScrollbarWidth] = useState(0);
 
-
-  
   useEffect(() => {
     const getScrollbarWidth = () => {
       const outer = document.createElement('div');
@@ -63,12 +47,10 @@ export default function CoverageTable({ report }: { report: ReportData }) {
   }, []);
 
   const trace_coverages = report.coverage?.trace_coverages || []
-  //const trace_coverages = generateRandomData(1000)
 
-  const sortedAndFilteredData = sortAndFilterTraceCoverages(trace_coverages, filterValues, sortBy, sortOrder)
+  const sortedAndFilteredData = sortAndFilterTraceCoverages(trace_coverages, filterValues, sortBy, sortOrder, searchQuery)
   const totalPages = Math.ceil(sortedAndFilteredData.length / itemsPerPage)
 
-  // Adjust currentPage if it exceeds totalPages
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages > 0 ? totalPages : 1);
@@ -85,18 +67,26 @@ export default function CoverageTable({ report }: { report: ReportData }) {
       <CardContent className="p-6">
         <div className="mb-4 flex justify-between items-center">
           <div className="flex space-x-2">
-                              <GenericSortPopover onSortChange={(option, order) => {
-                                  setSortBy(option);
-                                  setSortOrder(order);
-                              }} sortBy={sortBy} sortOrder={sortOrder} options={['coverage_a', 'trace', 'coverage_b']}/>
-                              <GenericFilterPopover onFilterChange={(metric, value) => {
-                                  setFilterValues({
-                                      ...filterValues,
-                                      [metric]: value
-                                  });
-                              }} filterValues={filterValues} resetFilters={() => setFilterValues(defaultTraceCoverageFilterValues)} options={['coverage_a', 'coverage_b']}/>
-                          
-                          </div>
+              <GenericSortPopover onSortChange={(option, order) => {
+                  setSortBy(option);
+                  setSortOrder(order);
+              }} sortBy={sortBy} sortOrder={sortOrder} options={[['coverage_a', "Coverage A"], ['trace'], ['coverage_b', "Coverage B"]]}/>
+              <GenericFilterPopover onFilterChange={(metric, value) => {
+                  setFilterValues({
+                      ...filterValues,
+                      [metric]: value
+                  });
+              }} filterValues={filterValues} resetFilters={() => setFilterValues(defaultTraceCoverageFilterValues)} options={[['coverage_a', "Coverage A"], ['coverage_b', "Coverage B"]]}/>
+            <div className="flex items-center space-x-2">
+            <Input
+              type="text"
+              placeholder="Search traces..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="ml-2"
+            />
+            </div>
+          </div>
           <div>
             Showing {paginatedData.length} of {sortedAndFilteredData.length} results
           </div>
@@ -105,9 +95,9 @@ export default function CoverageTable({ report }: { report: ReportData }) {
           <Table className="w-full">
             <TableHeader className="block" style={{ paddingRight: `${scrollbarWidth}px` }}>
               <TableRow className="flex">
-                <TableHead className="border-r w-1/3 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10">Coverage Set A</TableHead>
+                <TableHead className="border-r w-1/3 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10" style={{borderBottom: `3px solid hsl(var(--chart-2))`}}>Coverage Set A</TableHead>
                 <TableHead className="border-r w-1/3 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10">Traces</TableHead>
-                <TableHead className="w-1/3 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10">Coverage Set B</TableHead>
+                <TableHead className="w-1/3 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10" style={{borderBottom: `3px solid hsl(var(--chart-3))`}}>Coverage Set B</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="block max-h-[400px] overflow-y-auto">
@@ -122,7 +112,6 @@ export default function CoverageTable({ report }: { report: ReportData }) {
           </Table>
         </div>
         <Pagination className="mt-4 flex items-center space-x-2">
-          {/* Previous Button */}
           <Button
             variant="outline"
             size="sm"
@@ -132,8 +121,6 @@ export default function CoverageTable({ report }: { report: ReportData }) {
             <ChevronLeft className="h-4 w-4 mr-1" />
             Previous
           </Button>
-
-          {/* First Page */}
           <Button
             variant={currentPage === 1 ? "default" : "outline"}
             size="sm"
@@ -141,15 +128,11 @@ export default function CoverageTable({ report }: { report: ReportData }) {
           >
             1
           </Button>
-
-          {/* Ellipsis after first page */}
           {currentPage > 4 && (
             <PaginationEllipsis />
           )}
-
-          {/* Pages Around Current Page */}
-          {Array.from({ length: 5 }, (_, i) => {
-            const pageNumber = currentPage - 2 + i;
+          {Array.from({ length: 3 }, (_, i) => {
+            const pageNumber = currentPage - 1 + i;
             if (pageNumber > 1 && pageNumber < totalPages) {
               return (
                 <Button
@@ -164,13 +147,9 @@ export default function CoverageTable({ report }: { report: ReportData }) {
             }
             return null;
           })}
-
-          {/* Ellipsis before last page */}
           {currentPage < totalPages - 3 && (
             <PaginationEllipsis />
           )}
-
-          {/* Last Page */}
           {totalPages > 1 && (
             <Button
               variant={currentPage === totalPages ? "default" : "outline"}
@@ -180,8 +159,6 @@ export default function CoverageTable({ report }: { report: ReportData }) {
               {totalPages}
             </Button>
           )}
-
-          {/* Next Button */}
           <Button
             variant="outline"
             size="sm"
