@@ -1,5 +1,5 @@
 import LPMDialog from "@/components/LPMDialog";
-import { defaultFilterValues, FilterPopover, sortAndFilterLpms, SortOption, SortOrder, SortPopover } from "@/components/SortAndFilter";
+import { defaultLpmFilterValues, sortAndFilterLpms, LpmSortOption, SortOrder, GenericSortPopover, GenericFilterPopover } from "@/components/SortAndFilter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReportData, LocalProcessModel } from "@/types/Report";
@@ -12,9 +12,9 @@ const LPMCard =  ({side, lpms, setSelectedSide, setSelectedLpm}: {side: 1 | 2; l
     const color = side === 1 ? "hsl(var(--chart-2))" : "hsl(var(--chart-3))";
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [sortBy, setSortBy] = useState<SortOption>('name');
+    const [sortBy, setSortBy] = useState<LpmSortOption>('name');
     const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-    const [filterValues, setFilterValues] = useState<Record<Exclude<SortOption, 'name'>, [number, number]>>(defaultFilterValues);
+    const [filterValues, setFilterValues] = useState<Record<Exclude<LpmSortOption, 'name'>, [number, number]>>(defaultLpmFilterValues);
 
     const itemsPerPage = 50;
 
@@ -39,16 +39,16 @@ const LPMCard =  ({side, lpms, setSelectedSide, setSelectedLpm}: {side: 1 | 2; l
             <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>{title}</CardTitle>
                 <div className="flex space-x-2">
-                    <SortPopover onSortChange={(option, order) => {
+                    <GenericSortPopover onSortChange={(option, order) => {
                         setSortBy(option);
                         setSortOrder(order);
-                    }} sortBy={sortBy} sortOrder={sortOrder} />
-                    <FilterPopover onFilterChange={(metric, value) => {
+                    }} sortBy={sortBy} sortOrder={sortOrder} options={['name', 'fitness', 'precision', 'coverage']}/>
+                    <GenericFilterPopover onFilterChange={(metric, value) => {
                         setFilterValues({
                             ...filterValues,
                             [metric]: value
                         });
-                    }} filterValues={filterValues} resetFilters={() => setFilterValues(defaultFilterValues)} />
+                    }} filterValues={filterValues} resetFilters={() => setFilterValues(defaultLpmFilterValues)} options={['fitness', 'precision', 'coverage']}/>
                 
                 </div>
             </CardHeader>

@@ -49,7 +49,7 @@ def compute_coverage(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]]):
         log_coverage_masks_a.append(events_covered)
         model_coverage_a.append(model_coverage)
 
-    coverage_a, duplicate_coverage_a = compute_coverage_from_masks(log_coverage_masks_a)
+    coverage_a, duplicate_coverage_a, trace_coverages_a = compute_coverage_from_masks(log_coverage_masks_a)
 
     log_coverage_masks_b = list(map(partial_model_coverage, set_b.lpms))
     model_coverage_b = []
@@ -58,7 +58,9 @@ def compute_coverage(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]]):
         events_covered, model_coverage = log_coverage_mask
         events_covered_b.append(events_covered)
         model_coverage_b.append(model_coverage)
-    coverage_b, duplicate_coverage_b = compute_coverage_from_masks(events_covered_b)
+    coverage_b, duplicate_coverage_b, trace_coverages_b = compute_coverage_from_masks(events_covered_b)
+
+    trace_coverages = [{"trace": f"Trace {i}","coverage_a": trace_coverages_a[i], "coverage_b": trace_coverages_b[i]} for i in range(len(trace_coverages_a))]
     
     results = {
         "coverage_a": coverage_a,
@@ -66,7 +68,8 @@ def compute_coverage(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]]):
         "model_coverage_a": model_coverage_a,
         "coverage_b": coverage_b,
         "duplicate_coverage_b": duplicate_coverage_b,
-        "model_coverage_b": model_coverage_b
+        "model_coverage_b": model_coverage_b,
+        "trace_coverages": trace_coverages
     }
     return results
 
@@ -98,6 +101,7 @@ def compute_coverage_from_masks(log_coverage_masks: List[List[np.ndarray]]):
     total_events = 0
     total_covered_events = 0
     total_duplicate_events = 0
+    trace_coverages = []
     for trace_coverage in combined_masks:
 
         covered_events = np.where(trace_coverage >= 1, 1, 0).sum()
@@ -106,13 +110,18 @@ def compute_coverage_from_masks(log_coverage_masks: List[List[np.ndarray]]):
         total_events += len(trace_coverage)
         total_covered_events += covered_events
         total_duplicate_events += duplicate_coverage
+        
+        if len(trace_coverage) > 0:
+            trace_coverages.append(covered_events / len(trace_coverage))
+        else:
+            trace_coverages.append(0)
     
     if total_events == 0:
         return 0, 0
     coverage = total_covered_events / total_events
     duplicate_coverage = total_duplicate_events / total_events
 
-    return coverage, duplicate_coverage
+    return coverage, duplicate_coverage, trace_coverages
 
 def compute_model_coverage(model: LPM, traces: List[Tuple[str]]):
     covered_events = []

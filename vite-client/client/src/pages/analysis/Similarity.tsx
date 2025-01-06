@@ -2,7 +2,7 @@ import { ReportData } from "@/types/Report";
 import MyResponsiveHeatMap from "@/components/Heatmap";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SortPopover, FilterPopover, defaultFilterValues, SortOption, SortOrder, sortAndFilterLpms } from "@/components/SortAndFilter";
+import { defaultLpmFilterValues, LpmSortOption, SortOrder, sortAndFilterLpms, GenericSortPopover, GenericFilterPopover } from "@/components/SortAndFilter";
 import { useState } from "react";
 import { SimilarityMeasure, SimilaritySelection } from "@/components/SimilaritySelection";
 
@@ -11,9 +11,9 @@ import { SimilarityMeasure, SimilaritySelection } from "@/components/SimilarityS
 export default function Similarity({report}: {report: ReportData}) {
   const [similarityMeasure, setSimilarityMeasure] = useState<SimilarityMeasure>("trace_similarity" as SimilarityMeasure);
 
-  const [sortBy, setSortBy] = useState<SortOption>('name');
+  const [sortBy, setSortBy] = useState<LpmSortOption>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  const [filterValues, setFilterValues] = useState<Record<Exclude<SortOption, 'name'>, [number, number]>>(defaultFilterValues);
+  const [filterValues, setFilterValues] = useState<Record<Exclude<LpmSortOption, 'name'>, [number, number]>>(defaultLpmFilterValues);
 
   const similarityData = report.similarity?.[similarityMeasure];
 
@@ -53,23 +53,23 @@ export default function Similarity({report}: {report: ReportData}) {
 
     return (
       <ScrollArea>
-        <Card className="h-[600px] flex flex-col mt-4">
+        <Card className="h-[600px] flex flex-col mt-6">
             <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Similarity Heatmap</CardTitle>
                 <div className="flex space-x-2">
                   <div className="flex items-center space-x-2">
                     <SimilaritySelection similarityMeasure={similarityMeasure} setSimilarityMeasure={setSimilarityMeasure} />
                   </div>
-                    <SortPopover onSortChange={(option, order) => {
+                    <GenericSortPopover onSortChange={(option, order) => {
                         setSortBy(option);
                         setSortOrder(order);
-                    }} sortBy={sortBy} sortOrder={sortOrder} />
-                    <FilterPopover onFilterChange={(metric, value) => {
+                    }} sortBy={sortBy} sortOrder={sortOrder} options={['name', 'fitness', 'precision', 'coverage']}/>
+                    <GenericFilterPopover onFilterChange={(metric, value) => {
                         setFilterValues({
                             ...filterValues,
                             [metric]: value
                         });
-                    }} filterValues={filterValues} resetFilters={() => setFilterValues(defaultFilterValues)} />
+                    }} filterValues={filterValues} resetFilters={() => setFilterValues(defaultLpmFilterValues)} options={['fitness', 'precision', 'coverage']}/>
                 
                 </div>
             </CardHeader>

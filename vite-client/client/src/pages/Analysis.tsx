@@ -12,6 +12,7 @@ import LpmList from "@/pages/analysis/LpmList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AnalysisConformance from "@/pages/analysis/Conformance";
 import Similarity from "./analysis/Similarity";
+import CoverageTable from "@/components/CoverageTable";
 
 
 export type AnalysisPage = "overview" | "list"| "conformance" | "similarity" | "coverage" | "evaluation" | "setRelation";
@@ -132,7 +133,7 @@ export default function AnalysisPage({
           <TabsContent value="similarity">
             <Similarity report={report} />
           </TabsContent>
-          <TabsContent value="coverage">Coverage content</TabsContent>
+          <TabsContent value="coverage"><CoverageTable report={report}/></TabsContent>
           <TabsContent value="evaluation">Evaluation content</TabsContent>
           <TabsContent value="setRelation">Set Relationship content</TabsContent>
         </Tabs>
@@ -140,9 +141,6 @@ export default function AnalysisPage({
     </div>
           
         )
-
-          
-
         ) : (
           <Card>
             <CardContent className="p-6">

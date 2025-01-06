@@ -5,10 +5,32 @@ import { Button } from "@/components/ui/button";
 import { LocalProcessModel } from "@/types/Report";
 
 
-export type SortOption = 'name' | 'fitness' | 'precision' | 'coverage'
-export type SortOrder = 'asc' | 'desc'
+export type SortOrder = 'asc' | 'desc';
+export type SortOptionType = string;
+export type FilterValuesType = Record<string, [number, number]>;
 
-export const sortAndFilterLpms = (lpms: LocalProcessModel[], filterValues: Record<Exclude<SortOption, 'name'>, [number, number]>, sortBy: SortOption, sortOrder: SortOrder) => {
+export type LpmSortOption  = 'name' | 'fitness' | 'precision' | 'coverage'
+
+type TraceCoverage = {
+    coverage_a: number;
+    trace: string;
+    coverage_b: number;
+}
+
+export const defaultLpmFilterValues: Record<Exclude<LpmSortOption, 'name'>, [number, number]> = {
+  fitness: [0, 1],
+  precision: [0, 1],
+  coverage: [0, 1],
+};
+
+export type TraceCoverageSortOption = 'coverage_a' | 'trace' | 'coverage_b';
+
+export const defaultTraceCoverageFilterValues : Record<Exclude<TraceCoverageSortOption, 'trace'>, [number, number]> = {
+    coverage_a: [0, 1],
+    coverage_b: [0, 1],
+};
+
+export const sortAndFilterLpms = (lpms: LocalProcessModel[], filterValues: Record<Exclude<LpmSortOption, 'name'>, [number, number]>, sortBy: LpmSortOption, sortOrder: SortOrder) => {
         return lpms
             .filter(lpm => 
                 lpm.fitness >= filterValues.fitness[0] && lpm.fitness <= filterValues.fitness[1] &&
@@ -24,84 +46,124 @@ export const sortAndFilterLpms = (lpms: LocalProcessModel[], filterValues: Recor
             });
     };
 
-export const defaultFilterValues : Record<Exclude<SortOption, 'name'>, [number, number]> = {
-          fitness: [0, 1],
-          precision: [0, 1],
-          coverage: [0, 1]
-        };
-
-export const SortPopover = ({onSortChange, sortBy, sortOrder}: {onSortChange: (option: SortOption, order: SortOrder) => void; sortBy: SortOption; sortOrder: SortOrder}) => {
-    return (
-        <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="icon">
-                <SortAsc className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56">
-              <div className="space-y-2">
-                {(['name', 'fitness', 'precision', 'coverage'] as const).map((option) => (
-                  <div key={option} className="flex items-center justify-between">
-                    <span className="capitalize">{option}</span>
-                    <div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onSortChange(option, 'asc')}
-                        className={sortBy === option && sortOrder === 'asc' ? 'bg-accent' : ''}
-                      >
-                        <ChevronUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onSortChange(option, 'desc')}
-                        className={sortBy === option && sortOrder === 'desc' ? 'bg-accent' : ''}
-                      >
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
+export const sortAndFilterTraceCoverages = (traces: TraceCoverage[], filterValues: Record<Exclude<TraceCoverageSortOption, 'trace'>, [number, number]>, sortBy: TraceCoverageSortOption, sortOrder: SortOrder) => { 
+    const filteredTraces = traces.filter(trace => 
+        trace.coverage_a >= filterValues.coverage_a[0] && trace.coverage_a
+        <= filterValues.coverage_a[1] &&
+        trace.coverage_b >= filterValues.coverage_b[0] && trace.coverage_b
+        <= filterValues.coverage_b[1]
     );
-};
+  
+    return filteredTraces.sort((a,b) => {
+        if (sortBy === 'trace') {
+            return sortOrder === 'asc' ? a.trace.localeCompare(b.trace) : b.trace.localeCompare(a.trace);
+        }
+        else if (sortBy === 'coverage_a') {
+            return sortOrder === 'asc' ? a.coverage_a - b.coverage_a : b.coverage_a - a.coverage_a;
+        }
+        else {
+            return sortOrder === 'asc' ? a.coverage_b - b.coverage_b : b.coverage_b - a.coverage_b;
+        }
+      
+    });
+}
 
-export const FilterPopover = ({onFilterChange, filterValues, resetFilters}: {onFilterChange: (metric: Exclude<SortOption, 'name'>, value: [number, number]) => void; filterValues: Record<Exclude<SortOption, 'name'>, [number, number]>; resetFilters: () => void;}) => {
+  type GenericSortPopoverProps<TSortOption extends SortOptionType> = {
+    onSortChange: (option: TSortOption, order: SortOrder) => void;
+    sortBy: TSortOption;
+    sortOrder: SortOrder;
+    options: TSortOption[];
+  };
+
+  export function GenericSortPopover<TSortOption extends SortOptionType>({
+    onSortChange,
+    sortBy,
+    sortOrder,
+    options,
+  }: GenericSortPopoverProps<TSortOption>) {
     return (
-        <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <div className="space-y-4">
-                {(['fitness', 'precision', 'coverage'] as const).map((metric) => (
-                  <div key={metric} className="space-y-2">
-                    <label className="text-sm font-medium capitalize">{metric}</label>
-                    <Slider
-                      min={0}
-                      max={1}
-                      step={0.01}
-                      value={filterValues[metric]}
-                      onValueChange={(value) => onFilterChange(metric, value as [number, number])}
-                      className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4 [&_[role=slider]]:border-2"
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{filterValues[metric][0].toFixed(2)}</span>
-                      <span>{filterValues[metric][1].toFixed(2)}</span>
-                    </div>
-                  </div>
-                ))}
-                <Button onClick={resetFilters} variant="outline" size="sm" className="w-full">
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  Reset Filters
-                </Button>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="icon">
+            <SortAsc className="h-4 w-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-56">
+          <div className="space-y-2">
+            {options.map((option) => (
+              <div key={option} className="flex items-center justify-between">
+                <span className="capitalize">{option}</span>
+                <div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSortChange(option, 'asc')}
+                    className={sortBy === option && sortOrder === 'asc' ? 'bg-accent' : ''}
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSortChange(option, 'desc')}
+                    className={sortBy === option && sortOrder === 'desc' ? 'bg-accent' : ''}
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </PopoverContent>
-          </Popover>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
     );
-};
+  };
+
+  type GenericFilterPopoverProps<TFilterOption extends string> = {
+    onFilterChange: (metric: TFilterOption, value: [number, number]) => void;
+    filterValues: Record<TFilterOption, [number, number]>;
+    resetFilters: () => void;
+    options: TFilterOption[];
+  };
+  
+  export function GenericFilterPopover<TFilterOption extends string>({
+    onFilterChange,
+    filterValues,
+    resetFilters,
+    options,
+  }: GenericFilterPopoverProps<TFilterOption>) {
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="icon">
+            <Filter className="h-4 w-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80">
+          <div className="space-y-4">
+            {options.map((metric) => (
+              <div key={metric} className="space-y-2">
+                <label className="text-sm font-medium capitalize">{metric}</label>
+                <Slider
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={filterValues[metric]}
+                  onValueChange={(value) => onFilterChange(metric, value as [number, number])}
+                  className="[&;_[role=slider]]:h-4 [&;_[role=slider]]:w-4 [&;_[role=slider]]:border-2"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{filterValues[metric][0].toFixed(2)}</span>
+                  <span>{filterValues[metric][1].toFixed(2)}</span>
+                </div>
+              </div>
+            ))}
+            <Button onClick={resetFilters} variant="outline" size="sm" className="w-full">
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset Filters
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  };

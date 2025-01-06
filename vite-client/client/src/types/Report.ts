@@ -66,10 +66,11 @@ export interface ReportData {
         duplicate_coverage_a: number;
         coverage_b: number;
         duplicate_coverage_b: number;
-        coverage_mask_a?: number[][];
-        coverage_mask_b?: number[][];
-        trace_coverages_a?: number[];
-        trace_coverages_b?: number[];
+        trace_coverages?: {
+            trace: string;
+            coverage_a: number;
+            coverage_b: number;
+        }[];
     };
     fitness_aggregation?: Aggregation;
     precision_aggregation?: Aggregation;
