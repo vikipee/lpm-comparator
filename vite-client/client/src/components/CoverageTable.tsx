@@ -11,9 +11,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Pagination, PaginationEllipsis } from '@/components/ui/pagination';
-import { ReportData } from '@/types/Report';
+import { ReportData, Trace } from '@/types/Report';
 import { defaultTraceCoverageFilterValues, GenericFilterPopover, GenericSortPopover, sortAndFilterTraceCoverages, SortOrder, TraceCoverageSortOption } from '@/components/SortAndFilter';
 import { Input } from '@/components/ui/input';
+import TraceDialog from './TraceDialog';
 
 export default function CoverageTable({ report }: { report: ReportData }) {
     const [sortBy, setSortBy] = useState<TraceCoverageSortOption>('trace');
@@ -21,8 +22,10 @@ export default function CoverageTable({ report }: { report: ReportData }) {
     const [filterValues, setFilterValues] = useState<Record<Exclude<TraceCoverageSortOption, 'trace'>, [number, number]>>(defaultTraceCoverageFilterValues);
     const [searchQuery, setSearchQuery] = useState('');
 
+    const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
+
     const [currentPage, setCurrentPage] = useState(1)
-    const itemsPerPage = 50
+    const itemsPerPage = 100
 
     const [scrollbarWidth, setScrollbarWidth] = useState(0);
 
@@ -63,6 +66,7 @@ export default function CoverageTable({ report }: { report: ReportData }) {
   )
 
   return (
+    <>
     <Card className="w-full h-[600px] mt-6">
       <CardContent className="p-6">
         <div className="mb-4 flex justify-between items-center">
@@ -96,13 +100,13 @@ export default function CoverageTable({ report }: { report: ReportData }) {
             <TableHeader className="block" style={{ paddingRight: `${scrollbarWidth}px` }}>
               <TableRow className="flex">
                 <TableHead className="border-r w-1/3 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10" style={{borderBottom: `3px solid hsl(var(--chart-2))`}}>Coverage Set A</TableHead>
-                <TableHead className="border-r w-1/3 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10">Traces</TableHead>
+                <TableHead className="border-r w-1/3 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10" style={{ borderBottom: `3px solid hsl(240 5% 64.9%)`}}>Traces</TableHead>
                 <TableHead className="w-1/3 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10" style={{borderBottom: `3px solid hsl(var(--chart-3))`}}>Coverage Set B</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="block max-h-[400px] overflow-y-auto">
               {paginatedData.map((item, index) => (
-                <TableRow key={index} className="flex">
+                <TableRow key={index} className="flex" onClick={() => setSelectedTrace(item)} style={{ cursor: 'pointer' }}>
                   <TableCell className="border-r w-1/3 flex-shrink-0 text-center">{item.coverage_a.toFixed(4)}</TableCell>
                   <TableCell className="border-r w-1/3 flex-shrink-0 text-center">{item.trace}</TableCell>
                   <TableCell className="w-1/3 flex-shrink-0 text-center">{item.coverage_b.toFixed(4)}</TableCell>
@@ -171,5 +175,7 @@ export default function CoverageTable({ report }: { report: ReportData }) {
         </Pagination>
       </CardContent>
     </Card>
+    <TraceDialog selectedTrace={selectedTrace} setSelectedTrace={setSelectedTrace} />
+    </>
   )
 }

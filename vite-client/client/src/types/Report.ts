@@ -58,6 +58,13 @@ export interface LocalProcessModel {
     index: number;
 }
 
+export interface Trace {
+    trace: string;
+    coverage_a: number;
+    coverage_b: number;
+    id: number;
+}
+
 export interface ReportData {
     message?: string;
     similarity?: SimilarityMeasures;
@@ -66,11 +73,7 @@ export interface ReportData {
         duplicate_coverage_a: number;
         coverage_b: number;
         duplicate_coverage_b: number;
-        trace_coverages?: {
-            trace: string;
-            coverage_a: number;
-            coverage_b: number;
-        }[];
+        trace_coverages?: Trace[];
     };
     fitness_aggregation?: Aggregation;
     precision_aggregation?: Aggregation;

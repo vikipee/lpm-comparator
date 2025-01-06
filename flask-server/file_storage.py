@@ -9,12 +9,16 @@ class FileType(Enum):
     LPMSetA = 1
     LPMSetB = 2
     LOG = 3
-    REPORT = 4
-
-def save_computations(session_id, lpmset_a, lpmset_b, event_log, report=None):
+    MASKS = 4
+    REPORT = 5
+    
+def save_computations(session_id, lpmset_a, lpmset_b, event_log, masks=None, report=None):
     write_file(FileType.LPMSetA, LPMSet.serialize(lpmset_a), session_id, is_json=False)
     write_file(FileType.LPMSetB, LPMSet.serialize(lpmset_b), session_id, is_json=False)
     write_file(FileType.LOG, pickle.dumps(event_log), session_id, is_json=False)
+
+    if masks is not None:
+        write_file(FileType.MASKS, pickle.dumps(masks), session_id, is_json=False)
 
     if report is not None:
         write_file(FileType.REPORT, report, session_id, is_json=True)
@@ -26,13 +30,15 @@ def load_computations(session_id):
     serialized_lpms_a = read_file(FileType.LPMSetA, session_id, is_json=False)
     serialized_lpms_b = read_file(FileType.LPMSetB, session_id, is_json=False)
     serialized_event_log = read_file(FileType.LOG, session_id, is_json=False)
+    serialized_masks = read_file(FileType.MASKS, session_id, is_json=False)
     report = read_file(FileType.REPORT, session_id, is_json=True)
-
+    
     lpmset_a : LPMSet = LPMSet.deserialize(serialized_lpms_a) if serialized_lpms_a else None
     lpmset_b : LPMSet = LPMSet.deserialize(serialized_lpms_b) if serialized_lpms_b else None
     event_log = pickle.loads(serialized_event_log) if serialized_event_log else None
+    masks = pickle.loads(serialized_masks) if serialized_masks else None
 
-    return lpmset_a, lpmset_b, event_log, report
+    return lpmset_a, lpmset_b, event_log, masks, report
 
 def delete_files(session_id):
     if os.path.exists(f"uploads/{session_id}"):
@@ -58,19 +64,22 @@ def get_export_json(session_id):
     serialized_lpms_a = read_file(FileType.LPMSetA, session_id, is_json=False)
     serialized_lpms_b = read_file(FileType.LPMSetB, session_id, is_json=False)
     serialized_event_log = read_file(FileType.LOG, session_id, is_json=False)
+    serialized_masks = read_file(FileType.MASKS, session_id, is_json=False)
     report = read_file(FileType.REPORT, session_id, is_json=True)
 
     return {
         "report": report,
         "lpmset_a": get_string_from_binary(serialized_lpms_a),
         "lpmset_b": get_string_from_binary(serialized_lpms_b),
-        "event_log": get_string_from_binary(serialized_event_log)
+        "event_log": get_string_from_binary(serialized_event_log),
+        "masks": get_string_from_binary(serialized_masks)
     }
 
 def import_json(session_id, json_data):
     lpmset_a = get_binary_from_string(json_data["lpmset_a"])
     lpmset_b = get_binary_from_string(json_data["lpmset_b"])
     event_log = get_binary_from_string(json_data["event_log"])
+    masks = get_binary_from_string(json_data["masks"])
     report = json_data["report"]
 
     print("Imported report: ", report)
@@ -78,6 +87,7 @@ def import_json(session_id, json_data):
     write_file(FileType.LPMSetA, lpmset_a, session_id, is_json=False)
     write_file(FileType.LPMSetB, lpmset_b, session_id, is_json=False)
     write_file(FileType.LOG, event_log, session_id, is_json=False)
+    write_file(FileType.MASKS, masks, session_id, is_json=False)
     write_file(FileType.REPORT, report, session_id, is_json=True)
 
     return report

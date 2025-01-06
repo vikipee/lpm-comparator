@@ -46,7 +46,7 @@ def compute_report():
     if session_id is None:
         return jsonify({"error": "No session found"}), 404
     
-    lpmset_a, lpmset_b, event_log, _ = load_computations(session_id)
+    lpmset_a, lpmset_b, event_log, _, _ = load_computations(session_id)
     
     return Response(calculate_report(lpmset_a, lpmset_b, event_log, session_id), content_type='text/event-stream')
 
@@ -105,7 +105,7 @@ def get_petrinet_vis(side, lpm_id):
     if session_id is None:
         return jsonify({"error": "No session found"}), 404
     
-    lpmset_a, lpmset_b, _, _ = load_computations(session_id)
+    lpmset_a, lpmset_b, _, _, _ = load_computations(session_id)
     if side == 1:
         lpm = lpmset_a.get_lpm_by_id(lpm_id)
     else:
@@ -120,6 +120,45 @@ def get_petrinet_vis(side, lpm_id):
         svg_content = file.read()
 
     return jsonify({"vis": svg_content})
+
+@app.route('/api/tracecoverage/<int:trace_id>', methods=['GET'])
+def get_trace_coverage(trace_id):
+    session_id = session.get('id')
+    
+    if session_id is None:
+        return jsonify({"error": "No session found"}), 404
+    
+    _, _, event_log, masks, _ = load_computations(session_id)
+
+    if event_log is None:
+        return jsonify({"error": "No event log found"}), 404
+    
+    if trace_id >= len(event_log):
+        return jsonify({"error": "Trace not found"}), 404
+    
+    full_trace = event_log[trace_id]
+    mask_a = masks["mask_a"][trace_id]
+    mask_b = masks["mask_b"][trace_id]
+
+    covered_events_trace = []
+
+    for i, event in enumerate(full_trace):
+        covered_a = 0
+        if mask_a[i]:
+            covered_a = mask_a[i]
+        
+        covered_b = 0
+        if mask_b[i]:
+            covered_b = mask_b[i]
+
+        covered_events_trace.append({
+            "event": event,
+            "covered_a": covered_a,
+            "covered_b": covered_b
+        })
+    
+    print(covered_events_trace)
+    return jsonify(covered_events_trace)
 
 if __name__ == '__main__':
     app.run(debug=True)

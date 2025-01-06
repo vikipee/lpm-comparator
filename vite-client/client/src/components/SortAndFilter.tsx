@@ -2,20 +2,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Slider } from "@/components/ui/slider";
 import { ChevronDown, ChevronUp, Filter, RotateCcw, SortAsc } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LocalProcessModel } from "@/types/Report";
+import { LocalProcessModel, Trace } from "@/types/Report";
 
 
 export type SortOrder = 'asc' | 'desc';
 export type SortOptionType = string;
 export type FilterValuesType = Record<string, [number, number]>;
 
-export type LpmSortOption  = 'name' | 'fitness' | 'precision' | 'coverage'
-
-type TraceCoverage = {
-    coverage_a: number;
-    trace: string;
-    coverage_b: number;
-}
+export type LpmSortOption  = 'name' | 'fitness' | 'precision' | 'coverage';
 
 export const defaultLpmFilterValues: Record<Exclude<LpmSortOption, 'name'>, [number, number]> = {
   fitness: [0, 1],
@@ -46,7 +40,7 @@ export const sortAndFilterLpms = (lpms: LocalProcessModel[], filterValues: Recor
             });
     };
 
-export const sortAndFilterTraceCoverages = (traces: TraceCoverage[], filterValues: Record<Exclude<TraceCoverageSortOption, 'trace'>, [number, number]>, sortBy: TraceCoverageSortOption, sortOrder: SortOrder, searchQuery: string) => { 
+export const sortAndFilterTraceCoverages = (traces: Trace[], filterValues: Record<Exclude<TraceCoverageSortOption, 'trace'>, [number, number]>, sortBy: TraceCoverageSortOption, sortOrder: SortOrder, searchQuery: string) => { 
     const filteredTraces = traces.filter((trace) => {
       const withinCoverageA =
         trace.coverage_a >= filterValues.coverage_a[0] &&
