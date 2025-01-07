@@ -40,7 +40,10 @@ export const sortAndFilterLpms = (lpms: LocalProcessModel[], filterValues: Recor
             });
     };
 
-export const sortAndFilterTraceCoverages = (traces: Trace[], filterValues: Record<Exclude<TraceCoverageSortOption, 'trace'>, [number, number]>, sortBy: TraceCoverageSortOption, sortOrder: SortOrder, searchQuery: string) => { 
+export const sortAndFilterTraceCoverages = (traces: Trace[], filterValues: Record<Exclude<TraceCoverageSortOption, 'trace'>, [number, number]>, sortBy: TraceCoverageSortOption, sortOrder: SortOrder, variantsIdx: number[]) => { 
+
+  traces = traces.filter((_, i) => variantsIdx.includes(i));
+
     const filteredTraces = traces.filter((trace) => {
       const withinCoverageA =
         trace.coverage_a >= filterValues.coverage_a[0] &&
@@ -49,10 +52,7 @@ export const sortAndFilterTraceCoverages = (traces: Trace[], filterValues: Recor
         trace.coverage_b >= filterValues.coverage_b[0] &&
         trace.coverage_b <= filterValues.coverage_b[1];
 
-      const matchesSearch =
-        trace.trace.toLowerCase().includes(searchQuery.toLowerCase());
-
-      return withinCoverageA && withinCoverageB && matchesSearch;
+      return withinCoverageA && withinCoverageB;
     });
     return filteredTraces.sort((a,b) => {
         if (sortBy === 'trace') {

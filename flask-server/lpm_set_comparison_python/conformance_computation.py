@@ -60,7 +60,12 @@ def compute_coverage(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]]):
         model_coverage_b.append(model_coverage)
     coverage_b, duplicate_coverage_b, trace_coverages_b, combined_mask_b = compute_coverage_from_masks(events_covered_b)
 
-    trace_coverages = [{"id": i, "trace": f"Trace {i}","coverage_a": trace_coverages_a[i], "coverage_b": trace_coverages_b[i]} for i in range(len(trace_coverages_a))]
+    variants_idx = utils.get_indices_of_variants(traces)
+    variants = [", ".join(traces[i]) for i in variants_idx]
+
+    short_trace_strings = [utils.get_short_trace_string(trace) for trace in traces]
+
+    trace_coverages = [{"id": i, "trace": short_trace_strings[i],"coverage_a": trace_coverages_a[i], "coverage_b": trace_coverages_b[i]} for i in variants_idx]
     
     results = {
         "coverage_a": coverage_a,
@@ -77,7 +82,7 @@ def compute_coverage(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]]):
         "mask_b": combined_mask_b
     }
 
-    return results, masks
+    return results, masks, variants
 
 def compute_conformance_measures(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]]):
     fitness_precision_values_a = []

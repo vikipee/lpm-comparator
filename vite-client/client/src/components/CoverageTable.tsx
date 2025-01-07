@@ -15,12 +15,18 @@ import { ReportData, Trace } from '@/types/Report';
 import { defaultTraceCoverageFilterValues, GenericFilterPopover, GenericSortPopover, sortAndFilterTraceCoverages, SortOrder, TraceCoverageSortOption } from '@/components/SortAndFilter';
 import { Input } from '@/components/ui/input';
 import TraceDialog from './TraceDialog';
+import axios from 'axios';
 
 export default function CoverageTable({ report }: { report: ReportData }) {
+   const [variantsIdx, setVariantsIdx] = useState<number[]>([]);
+
     const [sortBy, setSortBy] = useState<TraceCoverageSortOption>('trace');
     const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
     const [filterValues, setFilterValues] = useState<Record<Exclude<TraceCoverageSortOption, 'trace'>, [number, number]>>(defaultTraceCoverageFilterValues);
+    
+    const [pendingSearchQuery, setPendingSearchQuery] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
 
@@ -46,12 +52,37 @@ export default function CoverageTable({ report }: { report: ReportData }) {
       return width;
     };
 
-    setScrollbarWidth(getScrollbarWidth());
-  }, []);
+    const table = document.getElementById('coverage-table-body');
+
+    if (table && table.scrollHeight > table.clientHeight) {
+      setScrollbarWidth(getScrollbarWidth());
+    }else{
+      setScrollbarWidth(0);
+    }
+  }, [variantsIdx]);
+
+  const fetchTraces = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post('/api/trace', { searchQuery});
+      setVariantsIdx(response.data);
+
+    } catch (error) {
+      console.error('Error fetching trace selection:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+      fetchTraces();
+  }, [searchQuery]);
 
   const trace_coverages = report.coverage?.trace_coverages || []
 
-  const sortedAndFilteredData = sortAndFilterTraceCoverages(trace_coverages, filterValues, sortBy, sortOrder, searchQuery)
+  
+
+  const sortedAndFilteredData = sortAndFilterTraceCoverages(trace_coverages, filterValues, sortBy, sortOrder, variantsIdx)
   const totalPages = Math.ceil(sortedAndFilteredData.length / itemsPerPage)
 
   useEffect(() => {
@@ -81,21 +112,34 @@ export default function CoverageTable({ report }: { report: ReportData }) {
                       [metric]: value
                   });
               }} filterValues={filterValues} resetFilters={() => setFilterValues(defaultTraceCoverageFilterValues)} options={[['coverage_a', "Coverage A"], ['coverage_b', "Coverage B"]]}/>
-            <div className="flex items-center space-x-2">
-            <Input
-              type="text"
-              placeholder="Search traces..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="ml-2"
-            />
-            </div>
+             <div className="flex items-center space-x-2 pl-6">
+                <Input
+                  type="text"
+                  placeholder="Search traces..."
+                  value={pendingSearchQuery}
+                  onChange={(e) => setPendingSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setSearchQuery(pendingSearchQuery);
+                    }
+                  }}
+                  className="ml-2"
+                />
+                {/* Optional Search Button */}
+                <Button
+                  variant="outline"
+                  onClick={() => setSearchQuery(pendingSearchQuery)}
+                  disabled={loading}
+                >
+                  {loading ? 'Loading...' : 'Search'}
+                </Button>
+              </div>
           </div>
           <div>
             Showing {paginatedData.length} of {sortedAndFilteredData.length} results
           </div>
         </div>
-        <div className="border rounded-lg overflow-hidden scrollbar-gutter-stable">
+        <div className="border rounded-lg overflow-hidden">
           <Table className="w-full">
             <TableHeader className="block" style={{ paddingRight: `${scrollbarWidth}px` }}>
               <TableRow className="flex">
@@ -104,7 +148,7 @@ export default function CoverageTable({ report }: { report: ReportData }) {
                 <TableHead className="w-1/3 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10" style={{borderBottom: `3px solid hsl(var(--chart-3))`}}>Coverage Set B</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody className="block max-h-[calc(100vh-20rem)] overflow-y-auto">
+            <TableBody className="block max-h-[calc(100vh-20rem)] overflow-y-auto" id="coverage-table-body">
               {paginatedData.map((item, index) => (
                 <TableRow key={index} className="flex" onClick={() => setSelectedTrace(item)} style={{ cursor: 'pointer' }}>
                   <TableCell className="border-r w-1/3 flex-shrink-0 text-center">{item.coverage_a.toFixed(4)}</TableCell>

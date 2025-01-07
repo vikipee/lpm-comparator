@@ -1,5 +1,6 @@
+from re import L
 from pm4py.objects.log.obj import EventLog, Trace, Event
-from typing import Tuple
+from typing import List, Tuple
 from lpm_set_comparison_python.lpm import LPM
 
 def create_event_log_from_traces(traces_list):
@@ -53,3 +54,36 @@ def get_projected_trace_on_model(trace: Tuple[str], model: LPM):
             projected_trace.append(None)
 
     return tuple(projected_trace)
+
+def get_short_trace_string(trace: Tuple[str]):
+    result = ""
+
+    if len(trace) > 3:
+        result = f"{trace[0]}, {trace[1]}, ... , {trace[-1]}"
+    else:
+        result =  ", ".join(trace)
+    
+    if len(result) > 50:
+        result = result[:50] + "..."
+    
+    return result
+
+def get_indices_of_variants(traces: List[Tuple[str]]):
+    # Create a dictionary to store the indices of each variant
+    variant_indices = {}
+    
+    # Iterate over the traces and their indices
+    for index, trace in enumerate(traces):
+        # Convert the trace to a string representation
+        trace_str = str(trace)
+        
+        # If the trace is not in the dictionary
+        if trace_str not in variant_indices:
+            variant_indices[trace_str] = index
+
+    # Convert the dictionary to a list of indices
+    indices = list(variant_indices.values())
+
+    return indices
+
+

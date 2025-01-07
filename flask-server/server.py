@@ -128,13 +128,15 @@ def get_trace_coverage(trace_id):
     if session_id is None:
         return jsonify({"error": "No session found"}), 404
     
-    _, _, event_log, masks, _ = load_computations(session_id)
+    _, _, event_log, other_computations, _ = load_computations(session_id)
 
     if event_log is None:
         return jsonify({"error": "No event log found"}), 404
     
     if trace_id >= len(event_log):
         return jsonify({"error": "Trace not found"}), 404
+    
+    masks = other_computations["masks"]
     
     full_trace = event_log[trace_id]
     mask_a = masks["mask_a"][trace_id]
@@ -159,6 +161,26 @@ def get_trace_coverage(trace_id):
     
     print(covered_events_trace)
     return jsonify(covered_events_trace)
+
+@app.route('/api/trace', methods=['POST'])
+def get_variants_with_query():
+    data = request.json
+    search_query = data.get('searchQuery', '')
+    print(search_query)
+
+    session_id = session.get('id')
+
+    if session_id is None:
+        return jsonify({"error": "No session found"}), 404
+    
+    _, _, _, other_computations, report = load_computations(session_id)
+
+    variants : str = other_computations["variants"]
+
+    # Get indices of variants that match the search query
+    matching_indices = [i for i, variant in enumerate(variants) if search_query.lower() in variant.lower()]
+    print(matching_indices)
+    return jsonify(matching_indices)
 
 if __name__ == '__main__':
     app.run(debug=True)

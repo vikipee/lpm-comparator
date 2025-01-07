@@ -23,7 +23,7 @@ def calculate_report(
 
     if event_log is not None:
         yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing coverage...'})}\n\n"
-        report["coverage"], masks = compute_coverage(set_a, set_b, event_log)
+        report["coverage"], masks, variants = compute_coverage(set_a, set_b, event_log)
         print("Computed coverage")
 
         yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing conformance...'})}\n\n"
@@ -61,6 +61,11 @@ def calculate_report(
         #Event log only when needed (Too big)
         #report["event_log"] = event_log
 
-    save_computations(session_id, set_a, set_b, event_log, masks, report)
+    other_computations = {
+        "masks": masks,
+        "variants": variants,
+    }
+
+    save_computations(session_id, set_a, set_b, event_log, other_computations, report)
     yield f"data: {json.dumps({'state': 'COMPLETED', 'progress': 100, 'message': 'Task completed', 'report': report})}\n\n"
     print(f"Report: {report}")
