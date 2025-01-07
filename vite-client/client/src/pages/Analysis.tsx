@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AnalysisConformance from "@/pages/analysis/Conformance";
 import Similarity from "./analysis/Similarity";
 import CoverageTable from "@/components/CoverageTable";
+import { EulerDiagram } from "@/components/EulerDiagram";
 
 
 export type AnalysisPage = "overview" | "list"| "conformance" | "similarity" | "coverage" | "evaluation" | "setRelation";
@@ -84,9 +85,9 @@ export default function AnalysisPage({
       <>
         {report ? (
           currentAnalysisPage === "overview" ? (
-          <>
+          <div className="flex-col items-center justify-center space-y-4">
             <h1 className="text-3xl font-bold mb-6 text-center">Analysis Results</h1>
-            <div className="space-y-6">
+            <div className="space-y-6 min-h-[calc(100vh-10rem)]">
             <AnalysisOverview report={report} setAnalysisPage={setCurrentAnalysisPage}/> 
             </div>
           <div className="flex justify-center space-x-4 mt-6">
@@ -106,7 +107,7 @@ export default function AnalysisPage({
               onAction={() => resetSession("upload")}
             />
           </div>
-          </>
+          </div>
           ) : (
             <div className="container mx-auto p-4 pt-12 md:pt-4">
       <div className="flex flex-col md:flex-row items-center">
@@ -135,7 +136,7 @@ export default function AnalysisPage({
           </TabsContent>
           <TabsContent value="coverage"><CoverageTable report={report}/></TabsContent>
           <TabsContent value="evaluation">Evaluation content</TabsContent>
-          <TabsContent value="setRelation">Set Relationship content</TabsContent>
+          <TabsContent value="setRelation"><EulerDiagram report={report}/> </TabsContent>
         </Tabs>
       </div>
     </div>

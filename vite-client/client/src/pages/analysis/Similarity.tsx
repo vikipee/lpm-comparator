@@ -1,6 +1,5 @@
 import { ReportData } from "@/types/Report";
 import MyResponsiveHeatMap from "@/components/Heatmap";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { defaultLpmFilterValues, LpmSortOption, SortOrder, sortAndFilterLpms, GenericSortPopover, GenericFilterPopover } from "@/components/SortAndFilter";
 import { useState } from "react";
@@ -52,7 +51,6 @@ export default function Similarity({report}: {report: ReportData}) {
   });
 
     return (
-      <ScrollArea>
         <Card className=" h-[calc(100vh-8rem)] flex flex-col mt-6">
             <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Similarity Heatmap</CardTitle>
@@ -73,13 +71,10 @@ export default function Similarity({report}: {report: ReportData}) {
                 
                 </div>
             </CardHeader>
-            <CardContent className="h-[600px] overflow-auto">
+            <CardContent className="h-[calc(100vh-8rem)] overflow-auto">
               {noLPMs ? (<div className="text-center h-full flex-col"> <h3 className="my-auto font-bold">No LPMs to display</h3> <p>Change your filters to see the Heatmap again</p></div>) : (<MyResponsiveHeatMap data={data}/>)}
             </CardContent>
         </Card>
-    
-  </ScrollArea>
-        
     );
 
 }
