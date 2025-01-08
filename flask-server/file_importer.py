@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+from typing import List
 from werkzeug.utils import secure_filename
 import pm4py
 from lpm_set_comparison_python.lpm import LPM, LPMSet
@@ -108,3 +110,25 @@ def convert_files(pnml_files_side_a, pnml_files_side_b, xes_file):
     event_log = convert_xes_file(xes_file) if xes_file else None
 
     return lpmset_a, lpmset_b, event_log
+
+
+def convert_stored_pnml_files(pnml_files: List[Path]):
+    """Converts the stored files to the required format for processing."""
+    lpms = []
+    for pnml_file in pnml_files:
+        try:
+            net, im, fm = pm4py.read_pnml(str(pnml_file))
+            lpm = LPM(net, im, fm, pnml_file.name)
+            lpms.append(lpm)
+        except Exception as e:
+            raise Exception(f"Error processing PNML file: {str(e)}, File: {str(pnml_file)}")
+    return LPMSet(lpms)
+
+def convert_stored_xes_file(xes_file_path: Path):
+    """Converts the stored XES file to the required format for processing."""
+    try:
+        event_log = pm4py.read_xes(str(xes_file_path))
+        traces = utils.get_traces_from_event_log(event_log)
+        return traces
+    except Exception as e:
+        raise Exception(f"Error processing XES file: {str(e)}, File: {str(xes_file_path)}")

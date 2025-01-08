@@ -63,3 +63,6 @@ flask_session/
 # Test results
 test-results/
 tests/__pycache__/
+
+
+pipeline/

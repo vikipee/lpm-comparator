@@ -10,27 +10,31 @@ def calculate_report(
     set_a: LPMSet,
     set_b: LPMSet,
     event_log: Optional[List[Tuple[str]]],
-    session_id: str
+    session_id: str,
+    pipeline: Optional[bool] = False
 ):
     # Create a dictionary to store the results of the comparison
     report = {}
-
-    yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing similarity...'})}\n\n"
+    if not pipeline:
+        yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing similarity...'})}\n\n"
     similarity_report = compute_similarity_measures(set_a, set_b)
 
     report["similarity"] = similarity_report
     print("Computed similarity measures")
 
     if event_log is not None:
-        yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing coverage...'})}\n\n"
+        if not pipeline:
+            yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing coverage...'})}\n\n"
         report["coverage"], masks, variants = compute_coverage(set_a, set_b, event_log)
         print("Computed coverage")
 
-        yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing conformance...'})}\n\n"
+        if not pipeline:
+            yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing conformance...'})}\n\n"
         compute_conformance_measures(set_a, set_b, event_log)
         print("Computed conformance measures")
 
-        yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing aggregations...'})}\n\n"
+        if not pipeline:
+            yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing aggregations...'})}\n\n"
         matchings = similarity_report["matchings"]
         report["fitness_aggregation"] = get_aggregated_measures(set_a, set_b, matchings, measure="fitness")
         report["precision_aggregation"] = get_aggregated_measures(set_a, set_b, matchings, measure="precision")
@@ -65,7 +69,10 @@ def calculate_report(
         "masks": masks,
         "variants": variants,
     }
-
-    save_computations(session_id, set_a, set_b, event_log, other_computations, report)
-    yield f"data: {json.dumps({'state': 'COMPLETED', 'progress': 100, 'message': 'Task completed', 'report': report})}\n\n"
+    if not pipeline:
+        save_computations(session_id, set_a, set_b, event_log, other_computations, report)
+        yield f"data: {json.dumps({'state': 'COMPLETED', 'progress': 100, 'message': 'Task completed', 'report': report})}\n\n"
     print(f"Report: {report}")
+
+    if pipeline:   
+        yield set_a, set_b, event_log, other_computations, report

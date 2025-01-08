@@ -75,6 +75,20 @@ def get_export_json(session_id):
         "other_computations": get_string_from_binary(serialized_other_computations)
     }
 
+def export_from_objects(lpmset_a, lpmset_b, event_log, other_computations, report):
+    serialized_lpms_a = LPMSet.serialize(lpmset_a)
+    serialized_lpms_b = LPMSet.serialize(lpmset_b)
+    serialized_event_log = pickle.dumps(event_log)
+    serialized_other_computations = pickle.dumps(other_computations)
+
+    return {
+        "report": report,
+        "lpmset_a": get_string_from_binary(serialized_lpms_a),
+        "lpmset_b": get_string_from_binary(serialized_lpms_b),
+        "event_log": get_string_from_binary(serialized_event_log),
+        "other_computations": get_string_from_binary(serialized_other_computations)
+    }
+
 def import_json(session_id, json_data):
     lpmset_a = get_binary_from_string(json_data["lpmset_a"])
     lpmset_b = get_binary_from_string(json_data["lpmset_b"])
