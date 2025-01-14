@@ -39,6 +39,12 @@ def compute_coverage_multi_processing(set_a: LPMSet, set_b: LPMSet, traces: List
         "mask_b": combined_mask_b
     }
 
+    for i, lpm in enumerate(set_a.lpms):
+        lpm.coverage = model_coverage_a[i]
+    
+    for i, lpm in enumerate(set_b.lpms):
+        lpm.coverage = model_coverage_b[i]
+
     return coverages, masks, variants    
 
 def compute_coverage(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]]):
@@ -78,8 +84,16 @@ def compute_coverage(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]]):
 def compute_conformance_measures_multi_processing(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]], executor: concurrent.futures.ProcessPoolExecutor):
     partial_fitness_precision_on_traces = partial(compute_fitness_precision_on_subtraces, traces=traces)
 
-    executor.map(partial_fitness_precision_on_traces, set_a.lpms)
-    executor.map(partial_fitness_precision_on_traces, set_b.lpms)
+    fitness_precision_a = list(executor.map(partial_fitness_precision_on_traces, set_a.lpms))
+    fitness_precision_b = list(executor.map(partial_fitness_precision_on_traces, set_b.lpms))
+
+    for i, lpm in enumerate(set_a.lpms):
+        lpm.fitness = fitness_precision_a[i][0]
+        lpm.precision = fitness_precision_a[i][1]
+    
+    for i, lpm in enumerate(set_b.lpms):
+        lpm.fitness = fitness_precision_b[i][0]
+        lpm.precision = fitness_precision_b[i][1]
 
 def compute_conformance_measures(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]]):
     partial_fitness_precision_on_traces = partial(compute_fitness_precision_on_subtraces, traces=traces)

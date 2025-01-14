@@ -56,12 +56,12 @@ class LPM:
     
     def get_fitness(self):
         if self.fitness is None:
-            self.fitness = random.uniform(0,1) #Adjust this line to compute the fitness of the LPM
+            self.fitness = 3 #Adjust this line to compute the fitness of the LPM
         return self.fitness
     
     def get_precision(self):
         if self.precision is None:
-            self.precision = random.uniform(0,1) #Adjust this line to compute the precision of the LPM
+            self.precision = 3 #Adjust this line to compute the precision of the LPM
         return self.precision
     
     def get_coverage(self):

@@ -173,7 +173,7 @@ def get_variants_with_query():
     if session_id is None:
         return jsonify({"error": "No session found"}), 404
     
-    _, _, _, other_computations, report = load_computations(session_id)
+    _, _, _, other_computations, _ = load_computations(session_id)
 
     variants : str = other_computations["variants"]
 
