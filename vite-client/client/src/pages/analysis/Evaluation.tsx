@@ -1,7 +1,10 @@
 // Evaluation.tsx
 
 import { useState } from 'react';
-import { MatchingDetailsDialog, RankingDetailsDialog } from '@/components/EvaluationDialogs';
+import {
+  MatchingDetailsDialog,
+  RankingDetailsDialog,
+} from '@/components/EvaluationDialogs';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -34,16 +37,19 @@ const DominanceCountingCard = ({ report }: { report: ReportData }) => {
     ? report.fitness_evaluation
     : report.precision_evaluation;
 
-  const dominanceCount: DominanceCount | undefined = evaluation?.dominance_counting
-    ? evaluation.dominance_counting[similarityType]
-    : undefined;
+  const dominanceCount: DominanceCount | undefined =
+    evaluation?.dominance_counting
+      ? evaluation.dominance_counting[similarityType]
+      : undefined;
 
   // Decide which set is better
   let winner = '';
   if (dominanceCount) {
     if ((dominanceCount.dom_count_a || 0) > (dominanceCount.dom_count_b || 0)) {
       winner = 'A';
-    } else if ((dominanceCount.dom_count_a || 0) < (dominanceCount.dom_count_b || 0)) {
+    } else if (
+      (dominanceCount.dom_count_a || 0) < (dominanceCount.dom_count_b || 0)
+    ) {
       winner = 'B';
     } else {
       winner = 'Tie';
@@ -68,7 +74,9 @@ const DominanceCountingCard = ({ report }: { report: ReportData }) => {
           <Select
             value={similarityType}
             onValueChange={(v) =>
-              setSimilarityType(v as 'leven_sym' | 'leven_asym_1' | 'leven_asym_2')
+              setSimilarityType(
+                v as 'leven_sym' | 'leven_asym_1' | 'leven_asym_2',
+              )
             }
           >
             <SelectTrigger className="w-48">
@@ -76,8 +84,12 @@ const DominanceCountingCard = ({ report }: { report: ReportData }) => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="leven_sym">Levenshtein Symmetric</SelectItem>
-              <SelectItem value="leven_asym_1">Levenshtein Asymmetric 1</SelectItem>
-              <SelectItem value="leven_asym_2">Levenshtein Asymmetric 2</SelectItem>
+              <SelectItem value="leven_asym_1">
+                Levenshtein Asymmetric 1
+              </SelectItem>
+              <SelectItem value="leven_asym_2">
+                Levenshtein Asymmetric 2
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -85,9 +97,13 @@ const DominanceCountingCard = ({ report }: { report: ReportData }) => {
       <div className="mt-4 text-center">
         {dominanceCount ? (
           <div className="flex items-center justify-center space-x-4">
-            <div className="text-3xl font-bold">{dominanceCount.dom_count_a ?? 0}</div>
+            <div className="text-3xl font-bold">
+              {dominanceCount.dom_count_a ?? 0}
+            </div>
             <div className="text-xl font-semibold">vs</div>
-            <div className="text-3xl font-bold">{dominanceCount.dom_count_b ?? 0}</div>
+            <div className="text-3xl font-bold">
+              {dominanceCount.dom_count_b ?? 0}
+            </div>
           </div>
         ) : (
           <div>No data available</div>
@@ -96,7 +112,9 @@ const DominanceCountingCard = ({ report }: { report: ReportData }) => {
           <div className="mt-2">
             <span>
               Set{' '}
-              <span className={winner === 'A' ? 'text-teal-600' : 'text-orange-600'}>
+              <span
+                className={winner === 'A' ? 'text-teal-600' : 'text-orange-600'}
+              >
                 {winner}
               </span>{' '}
               has higher dominance
@@ -191,7 +209,9 @@ const RankSumAggregationCard = ({ report }: { report: ReportData }) => {
           <div className="mt-2">
             <span>
               Set{' '}
-              <span className={winner === 'A' ? 'text-teal-600' : 'text-orange-600'}>
+              <span
+                className={winner === 'A' ? 'text-teal-600' : 'text-orange-600'}
+              >
                 {winner}
               </span>{' '}
               has better rank sum

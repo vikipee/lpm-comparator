@@ -39,7 +39,8 @@ export function MatchingDetailsDialog({
       <DialogHeader>
         <DialogTitle>Matching Details</DialogTitle>
         <DialogDescription>
-          View detailed comparison between LPMs. Switch between Fitness and Precision metrics.
+          View detailed comparison between LPMs. Switch between Fitness and
+          Precision metrics.
         </DialogDescription>
       </DialogHeader>
       {/* Switch between Fitness and Precision */}
@@ -82,8 +83,12 @@ export function MatchingDetailsDialog({
               return (
                 <tr key={idx} className="text-sm">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-gray-900">{lpmA?.name ?? 'N/A'}</div>
-                    <div className="text-xs text-gray-500">{(valueA ?? 0).toFixed(2)}</div>
+                    <div className="font-medium text-gray-900">
+                      {lpmA?.name ?? 'N/A'}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {(valueA ?? 0).toFixed(2)}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-center">
                     {winner && (
@@ -92,8 +97,8 @@ export function MatchingDetailsDialog({
                           winner === 'A'
                             ? 'text-teal-600'
                             : winner === 'B'
-                            ? 'text-orange-600'
-                            : 'text-gray-500'
+                              ? 'text-orange-600'
+                              : 'text-gray-500'
                         }`}
                       >
                         {winner === 'Tie' ? 'Tie' : `Winner: ${winner}`}
@@ -101,8 +106,12 @@ export function MatchingDetailsDialog({
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <div className="font-medium text-gray-900">{lpmB?.name ?? 'N/A'}</div>
-                    <div className="text-xs text-gray-500">{(valueB ?? 0).toFixed(2)}</div>
+                    <div className="font-medium text-gray-900">
+                      {lpmB?.name ?? 'N/A'}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {(valueB ?? 0).toFixed(2)}
+                    </div>
                   </td>
                 </tr>
               );
@@ -142,14 +151,17 @@ export function RankingDetailsDialog({
     lpms.find((lpm) => lpm.id === id);
 
   const getLPM = (rankItem: { side: number; id: string }) =>
-    rankItem.side === 1 ? getLPMById(rankItem.id, lpmsA) : getLPMById(rankItem.id, lpmsB);
+    rankItem.side === 1
+      ? getLPMById(rankItem.id, lpmsA)
+      : getLPMById(rankItem.id, lpmsB);
 
   return (
     <DialogContent className="max-w-3xl">
       <DialogHeader>
         <DialogTitle>Ranking Details</DialogTitle>
         <DialogDescription>
-          View the detailed ranking of LPMs. Switch between Fitness and Precision metrics.
+          View the detailed ranking of LPMs. Switch between Fitness and
+          Precision metrics.
         </DialogDescription>
       </DialogHeader>
       {/* Switch between Fitness and Precision */}
@@ -181,7 +193,8 @@ export function RankingDetailsDialog({
             {rankingIds.map((rankItem, idx) => {
               const lpm = getLPM(rankItem);
               const value = isFitness ? lpm?.fitness : lpm?.precision;
-              const setColor = rankItem.side === 1 ? 'text-teal-600' : 'text-orange-600';
+              const setColor =
+                rankItem.side === 1 ? 'text-teal-600' : 'text-orange-600';
 
               return (
                 <tr key={idx} className="text-sm">
@@ -189,7 +202,9 @@ export function RankingDetailsDialog({
                   <td className={`px-4 py-2 ${setColor}`}>
                     <div className="font-medium">{lpm?.name ?? 'N/A'}</div>
                   </td>
-                  <td className="px-4 py-2 text-right">{(value ?? 0).toFixed(2)}</td>
+                  <td className="px-4 py-2 text-right">
+                    {(value ?? 0).toFixed(2)}
+                  </td>
                 </tr>
               );
             })}

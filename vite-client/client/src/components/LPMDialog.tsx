@@ -1,12 +1,21 @@
 import { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PetriNetSkeleton } from '@/components/PetriNetSkeleton';
 import axios from 'axios';
 import { ReactSVG } from 'react-svg';
 import { LocalProcessModel, ReportData } from '@/types/Report';
 import { getSimilarLPMs } from '@/computation/similarity';
-import { SimilarityMeasure, SimilaritySelection } from "@/components/SimilaritySelection";
+import {
+  SimilarityMeasure,
+  SimilaritySelection,
+} from '@/components/SimilaritySelection';
 
 type SimilarLPM = {
   lpm_id: string;
@@ -20,25 +29,25 @@ export default function LPMDialog({
   selectedLpm,
   setSelectedLpm,
   report,
-}:{
+}: {
   side: 1 | 2;
   setSide: (side: 1 | 2) => void;
   selectedLpm: LocalProcessModel | null;
   setSelectedLpm: (lpm: LocalProcessModel | null) => void;
   report: ReportData;
 }) {
-  const [similarityMeasure, setSimilarityMeasure] = useState<SimilarityMeasure>('trace_similarity' as SimilarityMeasure);
+  const [similarityMeasure, setSimilarityMeasure] = useState<SimilarityMeasure>(
+    'trace_similarity' as SimilarityMeasure,
+  );
 
   const [vis, setVis] = useState<string | null>(null);
   const [similarLPMs, setSimilarLPMs] = useState<SimilarLPM[]>([]);
-
 
   useEffect(() => {
     if (selectedLpm) {
       fetchImage();
       fetchSimilarLPMs();
     }
-    
   }, [selectedLpm]);
 
   useEffect(() => {
@@ -49,7 +58,9 @@ export default function LPMDialog({
 
   const fetchImage = async () => {
     try {
-      const response = await axios.get(`/api/petrinet/${side}/${selectedLpm?.id}`);
+      const response = await axios.get(
+        `/api/petrinet/${side}/${selectedLpm?.id}`,
+      );
       setVis(response.data.vis);
     } catch (error) {
       console.error('Error fetching SVG:', error);
@@ -57,16 +68,22 @@ export default function LPMDialog({
   };
 
   const fetchSimilarLPMs = () => {
-    if(!selectedLpm) return;
+    if (!selectedLpm) return;
 
-    const similarLPMs = getSimilarLPMs(report, side, selectedLpm.index, 0.5, similarityMeasure);
+    const similarLPMs = getSimilarLPMs(
+      report,
+      side,
+      selectedLpm.index,
+      0.5,
+      similarityMeasure,
+    );
     setSimilarLPMs(similarLPMs);
-  }
+  };
 
   const handleSimilarLPMClick = (lpm_id: string) => {
-    let lpm : LocalProcessModel | null = null;
+    let lpm: LocalProcessModel | null = null;
 
-    if (side === 1){
+    if (side === 1) {
       lpm = report.lpms_b.find((lpm) => lpm.id === lpm_id) || null;
     } else {
       lpm = report.lpms_a.find((lpm) => lpm.id === lpm_id) || null;
@@ -78,8 +95,7 @@ export default function LPMDialog({
       setVis(null);
       setSelectedLpm(lpm);
     }
-  }
-
+  };
 
   const beforeInjection = (svg: SVGElement) => {
     svg.removeAttribute('width');
@@ -100,8 +116,17 @@ export default function LPMDialog({
   const otherColor = side === 1 ? 'hsl(var(--chart-3))' : 'hsl(var(--chart-2))';
 
   return (
-    <Dialog open={!!selectedLpm} onOpenChange={() => {setSelectedLpm(null); setVis(null);}}>
-      <DialogContent className="max-w-[800px] w-full" style={{ border: `4px solid ${color} ` }}>
+    <Dialog
+      open={!!selectedLpm}
+      onOpenChange={() => {
+        setSelectedLpm(null);
+        setVis(null);
+      }}
+    >
+      <DialogContent
+        className="max-w-[800px] w-full"
+        style={{ border: `4px solid ${color} ` }}
+      >
         <DialogHeader>
           <DialogTitle>{selectedLpm?.name}</DialogTitle>
           <DialogDescription></DialogDescription>
@@ -130,7 +155,10 @@ export default function LPMDialog({
           <div className="md:w-1/2">
             <div className="flex space-x-4">
               <h3 className="text-lg font-semibold">Most Similar Models:</h3>
-              <SimilaritySelection similarityMeasure={similarityMeasure} setSimilarityMeasure={setSimilarityMeasure}/>
+              <SimilaritySelection
+                similarityMeasure={similarityMeasure}
+                setSimilarityMeasure={setSimilarityMeasure}
+              />
             </div>
             <ScrollArea className="h-48">
               {similarLPMs.length > 0 ? (

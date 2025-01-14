@@ -1,13 +1,13 @@
 .event-block {
-    position: relative;
-    padding: 40px 30px 40px 30px;
-    color: black;
-    font-weight: bold;
-    font-size: 15px;
-    clip-path: polygon(87% 0%,97% 50%,87% 100%,0% 100%,10% 50%,0% 0%);
-    height: 40px;
-    width: 180px;
-    display: flex;
-    align-items: center;
-    text-overflow: ellipsis;
-  }
+  position: relative;
+  padding: 40px 30px 40px 30px;
+  color: black;
+  font-weight: bold;
+  font-size: 15px;
+  clip-path: polygon(87% 0%, 97% 50%, 87% 100%, 0% 100%, 10% 50%, 0% 0%);
+  height: 40px;
+  width: 180px;
+  display: flex;
+  align-items: center;
+  text-overflow: ellipsis;
+}

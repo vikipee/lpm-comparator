@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react'
-import { ResponsiveHeatMapCanvas } from '@nivo/heatmap'
+import { useState, useEffect } from 'react';
+import { ResponsiveHeatMapCanvas } from '@nivo/heatmap';
 
 const MyResponsiveHeatMap = ({ data }: { data: any }) => {
-  const [themeColors, setThemeColors] = useState<any>(null)
+  const [themeColors, setThemeColors] = useState<any>(null);
 
   useEffect(() => {
-    const rootStyles = getComputedStyle(document.documentElement)
+    const rootStyles = getComputedStyle(document.documentElement);
 
     const getHslColor = (variable: string) => {
-      const value = rootStyles.getPropertyValue(variable)
-      return `hsl(${value.trim()})`
-    }
+      const value = rootStyles.getPropertyValue(variable);
+      return `hsl(${value.trim()})`;
+    };
 
     const colors = {
       background: getHslColor('--background'),
@@ -18,15 +18,16 @@ const MyResponsiveHeatMap = ({ data }: { data: any }) => {
       primary: getHslColor('--primary'),
       primaryForeground: getHslColor('--primary-foreground'),
       // ... other colors as needed
-    }
+    };
 
-    const fontFamily = rootStyles.getPropertyValue('--font-sans').trim() || 'Inter, sans-serif'
+    const fontFamily =
+      rootStyles.getPropertyValue('--font-sans').trim() || 'Inter, sans-serif';
 
-    setThemeColors({ ...colors, fontFamily })
-  }, [])
+    setThemeColors({ ...colors, fontFamily });
+  }, []);
 
   if (!themeColors) {
-    return null // or loading indicator
+    return null; // or loading indicator
   }
 
   const heatmapTheme = {
@@ -77,98 +78,75 @@ const MyResponsiveHeatMap = ({ data }: { data: any }) => {
         fontFamily: themeColors.fontFamily,
       },
     },
-  }
+  };
 
   return (
     <ResponsiveHeatMapCanvas
-data={data}
-theme={heatmapTheme}
-colors={{
-    type: 'quantize',
-    scheme: 'blues',
-    steps: 10
-}}
-emptyColor={themeColors.background}
-margin={{ top :120 , right :120 , bottom :120 , left :120 }} // Increased margins for better spacing 
+      data={data}
+      theme={heatmapTheme}
+      colors={{
+        type: 'quantize',
+        scheme: 'blues',
+        steps: 10,
+      }}
+      emptyColor={themeColors.background}
+      margin={{ top: 120, right: 120, bottom: 120, left: 120 }} // Increased margins for better spacing
+      valueFormat=".2f"
+      axisTop={{
+        tickSize: 5,
 
-valueFormat=".2f" 
+        tickPadding: 10,
 
-axisTop ={{
-tickSize :
-5,
+        tickRotation: -45,
 
-tickPadding :
-10,
+        legend: 'Set B',
 
-tickRotation :
--45 ,
+        legendOffset: -90,
 
-legend :
-'Set B',
+        legendPosition: 'middle',
+      }}
+      axisLeft={{
+        tickSize: 5,
 
-legendOffset :
--90 ,
+        tickPadding: 10,
 
-legendPosition : 
-'middle', 
-}}
+        tickRotation: -45,
 
+        legend: 'Set A',
 
-axisLeft ={{
-tickSize :
-5,
+        legendPosition: 'middle',
 
-tickPadding :
-10,
+        legendOffset: -90,
+      }}
+      legends={[
+        {
+          anchor: 'bottom',
+          translateX: 0,
+          translateY: 40,
+          length: 400,
+          thickness: 8,
 
-tickRotation :-
-45 ,
+          direction: 'row',
 
-legend :'Set A',
+          tickPosition: 'after',
 
-legendPosition :'middle',
+          tickSize: 3,
 
-legendOffset :-90 ,
+          tickSpacing: 4,
 
-}} 
+          tickOverlap: false,
 
-legends={[
-{
-anchor:'bottom',
-translateX :0 ,
-translateY :40 ,
-length :400 ,
-thickness :8 ,
+          tickFormat: '.2f', // Legend Tick Formatting
 
-direction :'row', 
+          title: 'Value →',
 
-tickPosition :'after', 
+          titleAlign: 'start',
 
-tickSize:
-3,
+          titleOffset: 4,
+        },
+      ]}
+    />
+  );
+};
 
-tickSpacing:
-4,
-
-tickOverlap:
-false,
-
-tickFormat:
-".2f", // Legend Tick Formatting
-
-title:
-'Value →',
-
-titleAlign:
-'start',
-
-titleOffset:
-4,
-
-},
-
-]} />
-  )
-}
-
-export default MyResponsiveHeatMap
+export default MyResponsiveHeatMap;
