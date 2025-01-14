@@ -59,7 +59,7 @@ export default function CoverageTable({ report }: { report: ReportData }) {
     }else{
       setScrollbarWidth(0);
     }
-  }, [variantsIdx]);
+  }, [variantsIdx, filterValues]);
 
   const fetchTraces = async () => {
     setLoading(true);
@@ -105,13 +105,13 @@ export default function CoverageTable({ report }: { report: ReportData }) {
               <GenericSortPopover onSortChange={(option, order) => {
                   setSortBy(option);
                   setSortOrder(order);
-              }} sortBy={sortBy} sortOrder={sortOrder} options={[['coverage_a', "Coverage A"], ['trace'], ['coverage_b', "Coverage B"]]}/>
+              }} sortBy={sortBy} sortOrder={sortOrder} options={[['coverage_a', "Coverage A"], ['duplicate_coverage_a', "Duplicate Coverage A"],['trace'], ['coverage_b', "Coverage B"],['duplicate_coverage_b', "Duplicate Coverage B"]]}/>
               <GenericFilterPopover onFilterChange={(metric, value) => {
                   setFilterValues({
                       ...filterValues,
                       [metric]: value
                   });
-              }} filterValues={filterValues} resetFilters={() => setFilterValues(defaultTraceCoverageFilterValues)} options={[['coverage_a', "Coverage A"], ['coverage_b', "Coverage B"]]}/>
+              }} filterValues={filterValues} resetFilters={() => setFilterValues(defaultTraceCoverageFilterValues)} options={[['coverage_a', "Coverage A"],['duplicate_coverage_a', "Duplicate Coverage A"], ['coverage_b', "Coverage B"], ['duplicate_coverage_b', "Duplicate Coverage B"]]}/>
              <div className="flex items-center space-x-2 pl-6">
                 <Input
                   type="text"
@@ -143,17 +143,21 @@ export default function CoverageTable({ report }: { report: ReportData }) {
           <Table className="w-full">
             <TableHeader className="block" style={{ paddingRight: `${scrollbarWidth}px` }}>
               <TableRow className="flex">
-                <TableHead className="border-r w-1/3 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10" style={{borderBottom: `3px solid hsl(var(--chart-2))`}}>Coverage Set A</TableHead>
+                <TableHead className="border-r w-1/6 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10" style={{borderBottom: `3px solid hsl(var(--chart-2))`}}>Coverage A</TableHead>
+                <TableHead className="border-r w-1/6 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10" style={{borderBottom: `3px solid hsl(var(--chart-2))`}}>Duplicate Coverage A</TableHead>
                 <TableHead className="border-r w-1/3 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10" style={{ borderBottom: `3px solid hsl(240 5% 64.9%)`}}>Traces</TableHead>
-                <TableHead className="w-1/3 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10" style={{borderBottom: `3px solid hsl(var(--chart-3))`}}>Coverage Set B</TableHead>
+                <TableHead className="border-r w-1/6 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10" style={{borderBottom: `3px solid hsl(var(--chart-3))`}}>Coverage B</TableHead>
+                <TableHead className="w-1/6 flex-shrink-0 sticky top-0 pt-2 text-center bg-white z-10" style={{borderBottom: `3px solid hsl(var(--chart-3))`}}>Duplicate Coverage B</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="block max-h-[calc(100vh-20rem)] overflow-y-auto" id="coverage-table-body">
               {paginatedData.map((item, index) => (
                 <TableRow key={index} className="flex" onClick={() => setSelectedTrace(item)} style={{ cursor: 'pointer' }}>
-                  <TableCell className="border-r w-1/3 flex-shrink-0 text-center">{item.coverage_a.toFixed(4)}</TableCell>
+                  <TableCell className="border-r w-1/6 flex-shrink-0 text-center">{item.coverage_a.toFixed(4)}</TableCell>
+                  <TableCell className="border-r w-1/6 flex-shrink-0 text-center">{item.duplicate_coverage_a.toFixed(4)}</TableCell>
                   <TableCell className="border-r w-1/3 flex-shrink-0 text-center">{item.trace}</TableCell>
-                  <TableCell className="w-1/3 flex-shrink-0 text-center">{item.coverage_b.toFixed(4)}</TableCell>
+                  <TableCell className="border-r w-1/6 flex-shrink-0 text-center">{item.coverage_b.toFixed(4)}</TableCell>
+                  <TableCell className="w-1/6 flex-shrink-0 text-center">{item.duplicate_coverage_b.toFixed(4)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

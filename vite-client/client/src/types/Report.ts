@@ -62,6 +62,8 @@ export interface Trace {
     trace: string;
     coverage_a: number;
     coverage_b: number;
+    duplicate_coverage_a: number;
+    duplicate_coverage_b: number;
     id: number;
 }
 

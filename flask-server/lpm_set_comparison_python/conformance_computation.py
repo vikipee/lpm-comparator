@@ -22,7 +22,7 @@ def compute_coverage_multi_processing(set_a: LPMSet, set_b: LPMSet, traces: List
 
     short_trace_strings = [utils.get_short_trace_string(trace) for trace in traces]
 
-    trace_coverages = [{"id": i, "trace": short_trace_strings[i],"coverage_a": trace_coverages_a[i], "coverage_b": trace_coverages_b[i]} for i in variants_idx]
+    trace_coverages = [{"id": i, "trace": short_trace_strings[i],"coverage_a": trace_coverages_a[i][0], "duplicate_coverage_a": trace_coverages_a[i][1], "coverage_b": trace_coverages_b[i][0], "duplicate_coverage_b": trace_coverages_b[i][1],} for i in variants_idx]
     
     coverages = {
         "coverage_a": coverage_a,
@@ -62,7 +62,7 @@ def compute_coverage(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]]):
 
     short_trace_strings = [utils.get_short_trace_string(trace) for trace in traces]
 
-    trace_coverages = [{"id": i, "trace": short_trace_strings[i],"coverage_a": trace_coverages_a[i], "coverage_b": trace_coverages_b[i]} for i in variants_idx]
+    trace_coverages = [{"id": i, "trace": short_trace_strings[i],"coverage_a": trace_coverages_a[i][0], "duplicate_coverage_a": trace_coverages_a[i][1], "coverage_b": trace_coverages_b[i][0], "duplicate_coverage_b": trace_coverages_b[i][1],} for i in variants_idx]
     
     results = {
         "coverage_a": coverage_a,
@@ -126,9 +126,11 @@ def compute_coverage_from_masks(log_coverage_masks: List[List[np.ndarray]]):
         total_duplicate_events += duplicate_coverage
         
         if len(trace_coverage) > 0:
-            trace_coverages.append(covered_events / len(trace_coverage))
+            single_trace_coverage = covered_events / len(trace_coverage)
+            duplicate_trace_coverage = duplicate_coverage / len(trace_coverage)
+            trace_coverages.append((single_trace_coverage, duplicate_trace_coverage))
         else:
-            trace_coverages.append(0)
+            trace_coverages.append((0, 0))
     
     if total_events == 0:
         return 0, 0

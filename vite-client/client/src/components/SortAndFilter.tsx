@@ -17,11 +17,13 @@ export const defaultLpmFilterValues: Record<Exclude<LpmSortOption, 'name'>, [num
   coverage: [0, 1],
 };
 
-export type TraceCoverageSortOption = 'coverage_a' | 'trace' | 'coverage_b';
+export type TraceCoverageSortOption = 'coverage_a' | 'duplicate_coverage_a' | 'trace' | 'coverage_b' | 'duplicate_coverage_b';
 
 export const defaultTraceCoverageFilterValues : Record<Exclude<TraceCoverageSortOption, 'trace'>, [number, number]> = {
     coverage_a: [0, 1],
     coverage_b: [0, 1],
+    duplicate_coverage_a: [0, 1],
+    duplicate_coverage_b: [0, 1],
 };
 
 export const sortAndFilterLpms = (lpms: LocalProcessModel[], filterValues: Record<Exclude<LpmSortOption, 'name'>, [number, number]>, sortBy: LpmSortOption, sortOrder: SortOrder) => {
@@ -51,8 +53,14 @@ export const sortAndFilterTraceCoverages = (traces: Trace[], filterValues: Recor
       const withinCoverageB =
         trace.coverage_b >= filterValues.coverage_b[0] &&
         trace.coverage_b <= filterValues.coverage_b[1];
+      const withinDuplicateCoverageA = 
+        trace.duplicate_coverage_a >= filterValues.duplicate_coverage_a[0] &&
+        trace.duplicate_coverage_a <= filterValues.duplicate_coverage_a[1];
+      const withinDuplicateCoverageB =
+        trace.duplicate_coverage_b >= filterValues.duplicate_coverage_b[0] &&
+        trace.duplicate_coverage_b <= filterValues.duplicate_coverage_b[1];
 
-      return withinCoverageA && withinCoverageB;
+      return withinCoverageA && withinCoverageB && withinDuplicateCoverageA && withinDuplicateCoverageB;
     });
     return filteredTraces.sort((a,b) => {
         if (sortBy === 'trace') {
@@ -60,6 +68,12 @@ export const sortAndFilterTraceCoverages = (traces: Trace[], filterValues: Recor
         }
         else if (sortBy === 'coverage_a') {
             return sortOrder === 'asc' ? a.coverage_a - b.coverage_a : b.coverage_a - a.coverage_a;
+        }
+        else if (sortBy === 'duplicate_coverage_a') {
+          return sortOrder === 'asc' ? a.duplicate_coverage_a - b.duplicate_coverage_a : b.duplicate_coverage_a - a.duplicate_coverage_a;
+        }
+        else if (sortBy === 'duplicate_coverage_b') {
+          return sortOrder === 'asc' ? a.duplicate_coverage_b - b.duplicate_coverage_b : b.duplicate_coverage_b - a.duplicate_coverage_b;
         }
         else {
             return sortOrder === 'asc' ? a.coverage_b - b.coverage_b : b.coverage_b - a.coverage_b;

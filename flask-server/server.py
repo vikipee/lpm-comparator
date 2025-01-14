@@ -178,7 +178,14 @@ def get_variants_with_query():
     variants : str = other_computations["variants"]
 
     # Get indices of variants that match the search query
-    matching_indices = [i for i, variant in enumerate(variants) if search_query.lower() in variant.lower()]
+
+    search_parts = search_query.lower().split('#')
+
+    matching_indices = [
+        i for i, variant in enumerate(variants)
+        if all(part in variant.lower() for part in search_parts)
+    ]
+
     print(matching_indices)
     return jsonify(matching_indices)
 
