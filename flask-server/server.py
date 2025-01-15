@@ -1,9 +1,11 @@
+import time
+from tracemalloc import start
 from flask import Flask, request, jsonify, session, Response
 from flask_session import Session
 from file_importer import convert_files
 from lpm_set_comparison_python.main import calculate_report
 import secrets
-from file_storage import get_export_json, import_json, save_computations, load_computations, load_report, delete_files
+from file_storage import get_export_json, import_json, load_event_log, load_lpms_a, load_lpms_b, load_other_computations, save_computations, load_computations, load_report, delete_files
 
 app = Flask(__name__)
 
@@ -105,11 +107,15 @@ def get_petrinet_vis(side, lpm_id):
     if session_id is None:
         return jsonify({"error": "No session found"}), 404
     
-    lpmset_a, lpmset_b, _, _, _ = load_computations(session_id)
     if side == 1:
-        lpm = lpmset_a.get_lpm_by_id(lpm_id)
+        lpmset = load_lpms_a(session_id)
     else:
-        lpm = lpmset_b.get_lpm_by_id(lpm_id)
+        lpmset = load_lpms_b(session_id)
+
+    if lpmset is None:
+        return jsonify({"error": "LPM not found"}), 404
+    
+    lpm = lpmset.get_lpm_by_id(lpm_id)
     
     if lpm is None:
         return jsonify({"error": "LPM not found"}), 404
@@ -119,7 +125,7 @@ def get_petrinet_vis(side, lpm_id):
     with open(path_to_svg, 'r', encoding='utf-8') as file:
         svg_content = file.read()
 
-    return jsonify({"vis": svg_content})
+    return jsonify({"vis": svg_content, "side": side, "lpm_id": lpm_id})
 
 @app.route('/api/tracecoverage/<int:trace_id>', methods=['GET'])
 def get_trace_coverage(trace_id):
@@ -128,7 +134,8 @@ def get_trace_coverage(trace_id):
     if session_id is None:
         return jsonify({"error": "No session found"}), 404
     
-    _, _, event_log, other_computations, _ = load_computations(session_id)
+    other_computations = load_other_computations(session_id)
+    event_log = load_event_log(session_id)
 
     if event_log is None:
         return jsonify({"error": "No event log found"}), 404
@@ -173,7 +180,7 @@ def get_variants_with_query():
     if session_id is None:
         return jsonify({"error": "No session found"}), 404
     
-    _, _, _, other_computations, _ = load_computations(session_id)
+    other_computations = load_other_computations(session_id)
 
     variants : str = other_computations["variants"]
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -43,7 +43,15 @@ export default function LPMDialog({
   const [vis, setVis] = useState<string | null>(null);
   const [similarLPMs, setSimilarLPMs] = useState<SimilarLPM[]>([]);
 
+  const sideRef = useRef(side);
+  const selectedLpmRef = useRef(selectedLpm);
+
   useEffect(() => {
+    sideRef.current = side;
+  }, [side]);
+
+  useEffect(() => {
+    selectedLpmRef.current = selectedLpm;
     if (selectedLpm) {
       fetchImage();
       fetchSimilarLPMs();
@@ -61,7 +69,18 @@ export default function LPMDialog({
       const response = await axios.get(
         `/api/petrinet/${side}/${selectedLpm?.id}`,
       );
-      setVis(response.data.vis);
+
+      const latestSide = sideRef.current;
+      const latestLpmId = selectedLpmRef.current?.id;
+      console.log('latestSide:', latestSide);
+      console.log('latestLpmId:', latestLpmId);
+      console.log('response:', response.data);
+      if (
+        response.data.side === latestSide &&
+        response.data.lpm_id === latestLpmId
+      ) {
+        setVis(response.data.vis);
+      }
     } catch (error) {
       console.error('Error fetching SVG:', error);
     }
@@ -98,18 +117,35 @@ export default function LPMDialog({
   };
 
   const beforeInjection = (svg: SVGElement) => {
-    svg.removeAttribute('width');
-    svg.removeAttribute('height');
+    let width, height;
 
-    if (!svg.getAttribute('viewBox')) {
-      const width = svg.getAttribute('width') || '100';
-      const height = svg.getAttribute('height') || '100';
+    if (svg.getAttribute('viewBox')) {
+      const viewBox = svg.getAttribute('viewBox');
+      const viewBoxValues = viewBox?.trim().split(/\s+|,/).map(Number) || [
+        0, 0, 100, 100,
+      ];
+
+      width = viewBoxValues[2];
+      height = viewBoxValues[3];
+    } else {
+      width = parseFloat(svg.getAttribute('width') || '100');
+      height = parseFloat(svg.getAttribute('height') || '100');
+
       svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     }
 
+    if (height * 2 > width) {
+      svg.style.height = '20rem';
+      svg.style.width = 'auto';
+    } else {
+      svg.style.width = '100%';
+      svg.style.height = 'auto';
+    }
+
+    svg.removeAttribute('width');
+    svg.removeAttribute('height');
+
     svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('height', 'auto');
   };
 
   const color = side === 1 ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-3))';
@@ -138,7 +174,7 @@ export default function LPMDialog({
               <ReactSVG
                 src={`data:image/svg+xml;utf8,${encodeURIComponent(vis)}`}
                 beforeInjection={beforeInjection}
-                className="w-full h-auto transition-transform duration-300 hover:scale-150"
+                className="transition-transform duration-300 hover:scale-150"
               />
             </div>
           ) : (

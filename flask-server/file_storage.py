@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from lpm_set_comparison_python.lpm import LPMSet
 from enum import Enum
 import pickle
@@ -32,13 +33,28 @@ def load_computations(session_id):
     serialized_event_log = read_file(FileType.LOG, session_id, is_json=False)
     serialized_other_computations = read_file(FileType.OTHER, session_id, is_json=False)
     report = read_file(FileType.REPORT, session_id, is_json=True)
-    
     lpmset_a : LPMSet = LPMSet.deserialize(serialized_lpms_a) if serialized_lpms_a else None
     lpmset_b : LPMSet = LPMSet.deserialize(serialized_lpms_b) if serialized_lpms_b else None
     event_log = pickle.loads(serialized_event_log) if serialized_event_log else None
     other_computations = pickle.loads(serialized_other_computations) if serialized_other_computations else None
 
     return lpmset_a, lpmset_b, event_log, other_computations, report
+
+def load_other_computations(session_id):
+    serialized_other_computations = read_file(FileType.OTHER, session_id, is_json=False)
+    return pickle.loads(serialized_other_computations) if serialized_other_computations else None
+
+def load_lpms_a(session_id):
+    serialized_lpms_a = read_file(FileType.LPMSetA, session_id, is_json=False)
+    return LPMSet.deserialize(serialized_lpms_a) if serialized_lpms_a else None
+
+def load_lpms_b(session_id):
+    serialized_lpms_b = read_file(FileType.LPMSetB, session_id, is_json=False)
+    return LPMSet.deserialize(serialized_lpms_b) if serialized_lpms_b else None
+
+def load_event_log(session_id):
+    serialized_event_log = read_file(FileType.LOG, session_id, is_json=False)
+    return pickle.loads(serialized_event_log) if serialized_event_log else None
 
 def delete_files(session_id):
     if os.path.exists(f"uploads/{session_id}"):
