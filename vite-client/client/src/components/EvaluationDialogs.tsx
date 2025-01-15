@@ -18,23 +18,25 @@ import {
 export function MatchingDetailsDialog({
   report,
   isFitness: initialIsFitness,
+  setIsFitness,
   similarityType: initialSimilarityType,
   setSimilarityType,
 }: {
   report: ReportData;
   isFitness: boolean;
+  setIsFitness: React.Dispatch<React.SetStateAction<boolean>>;
   similarityType: 'leven_sym' | 'leven_asym_1' | 'leven_asym_2';
   setSimilarityType: React.Dispatch<
     React.SetStateAction<'leven_sym' | 'leven_asym_1' | 'leven_asym_2'>
   >;
 }) {
-  const [isFitness, setIsFitness] = useState(initialIsFitness);
+  const [isFitness, setLocalIsFitness] = useState(initialIsFitness);
   const [similarityType, setLocalSimilarityType] = useState(
     initialSimilarityType,
   );
 
   useEffect(() => {
-    setIsFitness(initialIsFitness);
+    setLocalIsFitness(initialIsFitness);
   }, [initialIsFitness]);
 
   useEffect(() => {
@@ -68,18 +70,21 @@ export function MatchingDetailsDialog({
         <div className="flex items-center space-x-2">
           <Label
             htmlFor="fitness-switch-dialog"
-            className={isFitness ? 'font-bold underline' : ''}
+            className={isFitness ? 'font-bold underline' : 'text-gray-500'}
           >
             Fitness
           </Label>
           <Switch
             id="fitness-switch-dialog"
             checked={!isFitness}
-            onCheckedChange={(checked) => setIsFitness(!checked)}
+            onCheckedChange={(checked) => {
+              setLocalIsFitness(!checked);
+              setIsFitness(!checked);
+            }}
           />
           <Label
             htmlFor="fitness-switch-dialog"
-            className={!isFitness ? 'font-bold underline' : ''}
+            className={!isFitness ? 'font-bold underline' : 'text-gray-500'}
           >
             Precision
           </Label>
@@ -110,89 +115,83 @@ export function MatchingDetailsDialog({
         </Select>
       </div>
       <div className="mt-6 overflow-auto max-h-96">
-        {dominanceCount ? (
-          matching.length > 0 ? (
-            <table className="w-full table-fixed">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="w-1/5 px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Set A
-                  </th>
-                  <th className="w-1/5 px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {isFitness ? 'Fitness' : 'Precision'}
-                  </th>
-                  <th className="w-1/5 px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Result
-                  </th>
-                  <th className="w-1/5 px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {isFitness ? 'Fitness' : 'Precision'}
-                  </th>
-                  <th className="w-1/5 px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Set B
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {matching.map((pair, idx) => {
-                  const lpmA = getLPMById(pair[0], lpmsA);
-                  const lpmB = getLPMById(pair[1], lpmsB);
-                  const valueA = isFitness ? lpmA?.fitness : lpmA?.precision;
-                  const valueB = isFitness ? lpmB?.fitness : lpmB?.precision;
-                  let winner = '';
+        {dominanceCount && matching.length > 0 ? (
+          <table className="w-full table-fixed">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="w-1/5 px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Set A
+                </th>
+                <th className="w-1/5 px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {isFitness ? 'Fitness' : 'Precision'}
+                </th>
+                <th className="w-1/5 px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Result
+                </th>
+                <th className="w-1/5 px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {isFitness ? 'Fitness' : 'Precision'}
+                </th>
+                <th className="w-1/5 px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Set B
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {matching.map((pair, idx) => {
+                const lpmA = getLPMById(pair[0], lpmsA);
+                const lpmB = getLPMById(pair[1], lpmsB);
+                const valueA = isFitness ? lpmA?.fitness : lpmA?.precision;
+                const valueB = isFitness ? lpmB?.fitness : lpmB?.precision;
+                let winner = '';
 
-                  if (valueA !== undefined && valueB !== undefined) {
-                    if (valueA > valueB) winner = 'A';
-                    else if (valueA < valueB) winner = 'B';
-                    else winner = 'Tie';
-                  }
+                if (valueA !== undefined && valueB !== undefined) {
+                  if (valueA > valueB) winner = 'A';
+                  else if (valueA < valueB) winner = 'B';
+                  else winner = 'Tie';
+                }
 
-                  return (
-                    <tr key={idx} className="text-sm">
-                      <td className="px-2 py-2 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">
-                          {lpmA?.name ?? 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-2 py-2">
-                        <div className="text-lg font-semibold text-chart-2">
-                          {valueA !== undefined ? valueA.toFixed(4) : 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-2 py-2 text-center">
-                        {winner && (
-                          <span
-                            className={`font-semibold ${
-                              winner === 'A'
-                                ? 'text-[hsl(var(--chart-2))]'
-                                : winner === 'B'
-                                  ? 'text-[hsl(var(--chart-3))]'
-                                  : 'text-gray-500'
-                            }`}
-                          >
-                            {winner === 'Tie' ? 'Tie' : `Winner: ${winner}`}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-2 py-2 text-right">
-                        <div className="text-lg font-semibold text-chart-3">
-                          {valueB !== undefined ? valueB.toFixed(4) : 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-2 py-2 whitespace-nowrap text-right">
-                        <div className="font-medium text-gray-900">
-                          {lpmB?.name ?? 'N/A'}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          ) : (
-            <div className="text-center text-gray-500">
-              No matching data available for the selected similarity type.
-            </div>
-          )
+                return (
+                  <tr key={idx} className="text-sm">
+                    <td className="px-2 py-2 whitespace-nowrap">
+                      <div className="font-medium text-gray-900">
+                        {lpmA?.name ?? 'N/A'}
+                      </div>
+                    </td>
+                    <td className="px-2 py-2">
+                      <div className="text-lg font-semibold text-chart-2">
+                        {valueA !== undefined ? valueA.toFixed(4) : 'N/A'}
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 text-center">
+                      {winner && (
+                        <span
+                          className={`font-semibold ${
+                            winner === 'A'
+                              ? 'text-[hsl(var(--chart-2))]'
+                              : winner === 'B'
+                                ? 'text-[hsl(var(--chart-3))]'
+                                : 'text-gray-500'
+                          }`}
+                        >
+                          {winner === 'Tie' ? 'Tie' : `Winner: ${winner}`}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-2 py-2 text-right">
+                      <div className="text-lg font-semibold text-chart-3">
+                        {valueB !== undefined ? valueB.toFixed(4) : 'N/A'}
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap text-right">
+                      <div className="font-medium text-gray-900">
+                        {lpmB?.name ?? 'N/A'}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         ) : (
           <div className="text-center text-gray-500">
             No matching data available for the selected similarity type.
@@ -206,14 +205,16 @@ export function MatchingDetailsDialog({
 export function RankingDetailsDialog({
   report,
   isFitness: initialIsFitness,
+  setIsFitness,
 }: {
   report: ReportData;
   isFitness: boolean;
+  setIsFitness: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const [isFitness, setIsFitness] = useState(initialIsFitness);
+  const [isFitness, setLocalIsFitness] = useState(initialIsFitness);
 
   useEffect(() => {
-    setIsFitness(initialIsFitness);
+    setLocalIsFitness(initialIsFitness);
   }, [initialIsFitness]);
 
   const evaluation = isFitness
@@ -238,18 +239,21 @@ export function RankingDetailsDialog({
       <div className="flex items-center space-x-2 mt-4">
         <Label
           htmlFor="fitness-switch-ranking-dialog"
-          className={isFitness ? 'font-bold underline' : ''}
+          className={isFitness ? 'font-bold underline' : 'text-gray-500'}
         >
           Fitness
         </Label>
         <Switch
           id="fitness-switch-ranking-dialog"
           checked={!isFitness}
-          onCheckedChange={(checked) => setIsFitness(!checked)}
+          onCheckedChange={(checked) => {
+            setLocalIsFitness(!checked);
+            setIsFitness(!checked);
+          }}
         />
         <Label
           htmlFor="fitness-switch-ranking-dialog"
-          className={!isFitness ? 'font-bold underline' : ''}
+          className={!isFitness ? 'font-bold underline' : 'text-gray-500'}
         >
           Precision
         </Label>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   MatchingDetailsDialog,
   RankingDetailsDialog,
@@ -67,7 +67,7 @@ const DominanceCountingCard = ({ report }: { report: ReportData }) => {
             <div className="flex items-center space-x-2">
               <Label
                 htmlFor="fitness-switch"
-                className={isFitness ? 'font-bold underline' : ''}
+                className={isFitness ? 'font-bold underline' : 'text-gray-500'}
               >
                 Fitness
               </Label>
@@ -78,7 +78,7 @@ const DominanceCountingCard = ({ report }: { report: ReportData }) => {
               />
               <Label
                 htmlFor="fitness-switch"
-                className={!isFitness ? 'font-bold underline' : ''}
+                className={!isFitness ? 'font-bold underline' : 'text-gray-500'}
               >
                 Precision
               </Label>
@@ -111,7 +111,7 @@ const DominanceCountingCard = ({ report }: { report: ReportData }) => {
             <div className="flex flex-col items-center">
               <div className="flex items-center justify-center space-x-4">
                 <div
-                  className={`text-3xl font-bold px-4 py-2 rounded ${
+                  className={`text-3xl font-bold px-4 py-2 rounded border border-chart-2 ${
                     winner === 'A'
                       ? 'bg-[hsl(var(--chart-2))] text-white'
                       : 'bg-gray-200 text-gray-800'
@@ -121,7 +121,7 @@ const DominanceCountingCard = ({ report }: { report: ReportData }) => {
                 </div>
                 <div className="text-xl font-semibold">vs</div>
                 <div
-                  className={`text-3xl font-bold px-4 py-2 rounded ${
+                  className={`text-3xl font-bold px-4 py-2 rounded border border-chart-3 ${
                     winner === 'B'
                       ? 'bg-[hsl(var(--chart-3))] text-white'
                       : 'bg-gray-200 text-gray-800'
@@ -167,6 +167,7 @@ const DominanceCountingCard = ({ report }: { report: ReportData }) => {
               <MatchingDetailsDialog
                 report={report}
                 isFitness={isFitness}
+                setIsFitness={setIsFitness}
                 similarityType={similarityType}
                 setSimilarityType={setSimilarityType}
               />
@@ -215,7 +216,7 @@ const RankSumAggregationCard = ({ report }: { report: ReportData }) => {
           <div className="flex items-center space-x-2">
             <Label
               htmlFor="fitness-switch-rank"
-              className={isFitness ? 'font-bold underline' : ''}
+              className={isFitness ? 'font-bold underline' : 'text-gray-500'}
             >
               Fitness
             </Label>
@@ -226,7 +227,7 @@ const RankSumAggregationCard = ({ report }: { report: ReportData }) => {
             />
             <Label
               htmlFor="fitness-switch-rank"
-              className={!isFitness ? 'font-bold underline' : ''}
+              className={!isFitness ? 'font-bold underline' : 'text-gray-500'}
             >
               Precision
             </Label>
@@ -237,7 +238,7 @@ const RankSumAggregationCard = ({ report }: { report: ReportData }) => {
             <div className="flex flex-col items-center">
               <div className="flex items-center justify-center space-x-4">
                 <div
-                  className={`text-3xl font-bold px-4 py-2 rounded ${
+                  className={`text-3xl font-bold px-4 py-2 rounded border border-chart-2 ${
                     winner === 'A'
                       ? 'bg-[hsl(var(--chart-2))] text-white'
                       : 'bg-gray-200 text-gray-800'
@@ -247,7 +248,7 @@ const RankSumAggregationCard = ({ report }: { report: ReportData }) => {
                 </div>
                 <div className="text-xl font-semibold">vs</div>
                 <div
-                  className={`text-3xl font-bold px-4 py-2 rounded ${
+                  className={`text-3xl font-bold px-4 py-2 rounded border border-chart-3 ${
                     winner === 'B'
                       ? 'bg-[hsl(var(--chart-3))] text-white'
                       : 'bg-gray-200 text-gray-800'
@@ -290,7 +291,11 @@ const RankSumAggregationCard = ({ report }: { report: ReportData }) => {
               <DialogTrigger asChild>
                 <Button variant="ghost">Inspect Details</Button>
               </DialogTrigger>
-              <RankingDetailsDialog report={report} isFitness={isFitness} />
+              <RankingDetailsDialog
+                report={report}
+                isFitness={isFitness}
+                setIsFitness={setIsFitness}
+              />
             </Dialog>
           )}
         </div>

@@ -1,5 +1,3 @@
-type pair = [number, number];
-
 export type similarityMatrix = number[][];
 
 export interface SimilarityMeasures {
