@@ -8,24 +8,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useState } from 'react';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  LabelList,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { RadialBar, RadialBarChart } from 'recharts';
 import { AnalysisPage } from '@/pages/Analysis';
 import {
   SimilarityMeasure,
@@ -292,7 +281,7 @@ const CardinalityCard = ({
             onClick={() => setAnalysisPage('list')}
             className="text-lg font-semibold cursor-pointer hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            Cardinality
+            LPMs Overview
           </button>
         </CardTitle>
       </CardHeader>
@@ -348,7 +337,7 @@ const SimilarityCard = ({
             onClick={() => setAnalysisPage('similarity')}
             className="text-lg font-semibold cursor-pointer hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            Similarity
+            Overall Similarity
           </button>
         </CardTitle>
         <SimilaritySelection

@@ -1,11 +1,9 @@
 from typing import List
 import pm4py
-from pm4py.visualization.petri_net import visualizer as petrinet_visualizer
 from pm4py.objects.petri_net.obj import PetriNet, Marking
 from pm4py.algo.simulation.playout.petri_net.variants.extensive import apply as find_traces
 from pm4py.statistics.eventually_follows.log.get import apply as get_eventually_follows_dict
 import pickle
-import random
 import secrets
 import os
 
@@ -20,11 +18,11 @@ class LPM:
         self.traces = None
         self.log = None
         self.eventually_follows_set = None
+        self.transition_adjacency_set = None
         self.fitness = None
         self.precision = None
         self.coverage = None
         self.belongs_to_set = None
-        #self.get_eventually_follows_set()
 
     def __repr__(self):
         return f"LPM(net={self.net}, im={self.im}, fm={self.fm})"
@@ -53,6 +51,16 @@ class LPM:
             self.eventually_follows_set = set(eventually_follows_dict.keys())
 
         return self.eventually_follows_set
+    
+    def get_transition_adjacency_set(self):
+        if self.transition_adjacency_set is None:
+            transition_adjacency_set = set()
+            for trace in self.get_traces():
+                for i in range(len(trace)-1):
+                    transition_adjacency_set.add((trace[i], trace[i+1]))
+            self.transition_adjacency_set = transition_adjacency_set
+
+        return self.transition_adjacency_set
     
     def get_fitness(self):
         if self.fitness is None:
@@ -85,6 +93,7 @@ class LPMSet:
         self.lpms = lpms
         self.combined_traces = None
         self.combined_eventually_follows_set = None
+        self.combined_transition_adjacency_set = None
 
     def __repr__(self):
         return f"LPMSet(lpms={self.lpms})"
@@ -120,6 +129,15 @@ class LPMSet:
             self.combined_eventually_follows_set = combined_eventually_follows_set
 
         return self.combined_eventually_follows_set
+    
+    def get_transition_adjacency_set(self):
+        if self.combined_transition_adjacency_set is None:
+            combined_transition_adjacency_set = set()
+            for lpm in self.lpms:
+                combined_transition_adjacency_set = combined_transition_adjacency_set.union(lpm.get_transition_adjacency_set())
+            self.combined_transition_adjacency_set = combined_transition_adjacency_set
+        
+        return self.combined_transition_adjacency_set
     
     def mark_belongs_to_set(self, set_id):
         for lpm in self.lpms:

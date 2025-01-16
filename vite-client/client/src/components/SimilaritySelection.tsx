@@ -29,6 +29,9 @@ export const SimilaritySelection = ({
         <SelectItem value="eventually_follows_similarity">
           Eventually Follows similarity
         </SelectItem>
+        <SelectItem value="transition_adjacency_similarity">
+          Transition Adjacency similarity
+        </SelectItem>
         <SelectItem value="trace_similarity_perfect">
           Perfect trace similarity
         </SelectItem>

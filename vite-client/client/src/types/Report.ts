@@ -13,6 +13,10 @@ export interface SimilarityMeasures {
     overall: number;
     matrix: similarityMatrix;
   };
+  transition_adjacency_similarity?: {
+    overall: number;
+    matrix: similarityMatrix;
+  };
 }
 
 export interface DominanceCount {

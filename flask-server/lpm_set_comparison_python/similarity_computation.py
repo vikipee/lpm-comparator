@@ -46,6 +46,18 @@ def compute_eventually_follows_similarity(lpm_a: LPM | LPMSet, lpm_b: LPM | LPMS
 
     return 2 * len(intersection_eventually_follows) / denominator
 
+def compute_transition_adjancency_similarity(lpm_a: LPM | LPMSet, lpm_b: LPM | LPMSet):
+    tar_a = lpm_a.get_transition_adjacency_set()
+    tar_b = lpm_b.get_transition_adjacency_set()
+
+    intersection_tar = tar_a.intersection(tar_b)
+
+    denominator =  (len(tar_a) + len(tar_b))
+    if denominator == 0:
+        return 0
+    
+    return 2 * len(intersection_tar) / denominator
+
 def compute_pairwise_similarity_measures(set_a: LPMSet, set_b: LPMSet, similarity_fn: Callable[[LPM, LPM], float]):
     similarity_matrix = []
 
@@ -105,6 +117,7 @@ def compute_similarity_measures(set_a: LPMSet, set_b: LPMSet):
     
     similarity_matrix_eventually_follows = compute_pairwise_similarity_measures(set_a, set_b, compute_eventually_follows_similarity)
     similarity_matrix_perfect = compute_pairwise_similarity_measures(set_a, set_b, compute_trace_similarity_perfect)
+    similarity_matrix_tar = compute_pairwise_similarity_measures(set_a, set_b, compute_transition_adjancency_similarity)
 
     #Create matchings
     matchings = {}
@@ -125,6 +138,10 @@ def compute_similarity_measures(set_a: LPMSet, set_b: LPMSet):
             "overall": compute_trace_similarity_perfect(set_a, set_b),
             "matrix": similarity_matrix_perfect
         },
+        "transition_adjacency_similarity": {
+            "overall": compute_transition_adjancency_similarity(set_a, set_b),
+            "matrix": similarity_matrix_tar
+        }
     }
 
     return results, matchings

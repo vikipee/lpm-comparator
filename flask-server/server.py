@@ -1,5 +1,3 @@
-import time
-from tracemalloc import start
 from flask import Flask, request, jsonify, session, Response
 from flask_session import Session
 from file_importer import convert_files
