@@ -17,6 +17,10 @@ export interface SimilarityMeasures {
     overall: number;
     matrix: similarityMatrix;
   };
+  ged_similarity?: {
+    overall?: number;
+    matrix: similarityMatrix;
+  };
 }
 
 export interface DominanceCount {

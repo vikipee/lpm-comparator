@@ -6,6 +6,7 @@ from pm4py.statistics.eventually_follows.log.get import apply as get_eventually_
 import pickle
 import secrets
 import os
+import networkx as nx
 
 # Define a custom class to hold the Petri net and its markings
 class LPM:
@@ -61,6 +62,16 @@ class LPM:
             self.transition_adjacency_set = transition_adjacency_set
 
         return self.transition_adjacency_set
+    
+    def get_graph(self):
+        graph = nx.DiGraph()
+        for t in self.net.transitions:
+            graph.add_node(t.name, id=t.name, type="transition", label=t.label)
+        for p in self.net.places:
+            graph.add_node(p.name, id=p.name, type="place", place=p)
+        for arc in self.net.arcs:
+            graph.add_edge(arc.source.name, arc.target.name, id=(arc.source.name, arc.target.name))
+        return graph
     
     def get_fitness(self):
         if self.fitness is None:

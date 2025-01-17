@@ -72,9 +72,6 @@ export default function LPMDialog({
 
       const latestSide = sideRef.current;
       const latestLpmId = selectedLpmRef.current?.id;
-      console.log('latestSide:', latestSide);
-      console.log('latestLpmId:', latestLpmId);
-      console.log('response:', response.data);
       if (
         response.data.side === latestSide &&
         response.data.lpm_id === latestLpmId

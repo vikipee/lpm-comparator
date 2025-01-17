@@ -32,6 +32,9 @@ export const SimilaritySelection = ({
         <SelectItem value="transition_adjacency_similarity">
           Transition Adjacency similarity
         </SelectItem>
+        <SelectItem value="ged_similarity">
+          Graph Edit Distance similarity
+        </SelectItem>
         <SelectItem value="trace_similarity_perfect">
           Perfect trace similarity
         </SelectItem>

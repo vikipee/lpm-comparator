@@ -1,7 +1,7 @@
-from re import L
 from pm4py.objects.log.obj import EventLog, Trace, Event
 from typing import List, Tuple
 from lpm_set_comparison_python.lpm import LPM
+import networkx as nx
 
 def create_event_log_from_traces(traces_list):
     event_log = EventLog()
@@ -88,4 +88,12 @@ def get_indices_of_variants(traces: List[Tuple[str]]):
 
     return indices
 
+def graph_edit_distance(g1: nx.DiGraph, g2: nx.DiGraph, timeout=None):
+    def node_cost(n1, n2):
+        if n1["type"] != n2["type"]:
+            return 1
+        if n1["type"] == "place":
+            return 0
+        return int(n1["label"] != n2["label"])
 
+    return nx.graph_edit_distance(g1, g2, node_subst_cost=node_cost, timeout=timeout)

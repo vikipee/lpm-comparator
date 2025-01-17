@@ -4,6 +4,8 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 from difflib import SequenceMatcher
 from pm4py.algo.clustering.trace_attribute_driven.leven_dist.leven_dist_calc import leven_preprocess
+import networkx as nx
+from .utils import graph_edit_distance
 
 def compute_trace_similarity_perfect(lpm_a: LPM | LPMSet, lpm_b: LPM | LPMSet):
     traces_a = lpm_a.get_traces()
@@ -57,6 +59,15 @@ def compute_transition_adjancency_similarity(lpm_a: LPM | LPMSet, lpm_b: LPM | L
         return 0
     
     return 2 * len(intersection_tar) / denominator
+
+def compute_normalized_ged_sim(lpm_a: LPM, lpm_b: LPM, timeout=None):
+    g1 = lpm_a.get_graph()
+    g2 = lpm_b.get_graph()
+    
+    ged = graph_edit_distance(g1, g2, timeout=timeout)
+    ged_g1_empty = graph_edit_distance(g1, nx.empty_graph(), timeout=timeout)
+    ged_g2_empty = graph_edit_distance(g2, nx.empty_graph(), timeout=timeout)
+    return 1- ( ged / (ged_g1_empty + ged_g2_empty))
 
 def compute_pairwise_similarity_measures(set_a: LPMSet, set_b: LPMSet, similarity_fn: Callable[[LPM, LPM], float]):
     similarity_matrix = []
@@ -118,6 +129,7 @@ def compute_similarity_measures(set_a: LPMSet, set_b: LPMSet):
     similarity_matrix_eventually_follows = compute_pairwise_similarity_measures(set_a, set_b, compute_eventually_follows_similarity)
     similarity_matrix_perfect = compute_pairwise_similarity_measures(set_a, set_b, compute_trace_similarity_perfect)
     similarity_matrix_tar = compute_pairwise_similarity_measures(set_a, set_b, compute_transition_adjancency_similarity)
+    similarity_matrix_ged = compute_pairwise_similarity_measures(set_a, set_b, compute_normalized_ged_sim)
 
     #Create matchings
     matchings = {}
@@ -141,6 +153,9 @@ def compute_similarity_measures(set_a: LPMSet, set_b: LPMSet):
         "transition_adjacency_similarity": {
             "overall": compute_transition_adjancency_similarity(set_a, set_b),
             "matrix": similarity_matrix_tar
+        },
+        "ged_similarity": {
+            "matrix": similarity_matrix_ged,
         }
     }
 
