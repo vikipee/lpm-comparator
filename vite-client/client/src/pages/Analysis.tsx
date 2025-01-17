@@ -144,10 +144,10 @@ export default function AnalysisPage({
                     <TabsTrigger value="conformance">Conformance</TabsTrigger>
                     <TabsTrigger value="similarity">Similarity</TabsTrigger>
                     <TabsTrigger value="coverage">Coverage</TabsTrigger>
-                    <TabsTrigger value="evaluation">Evaluation</TabsTrigger>
                     <TabsTrigger value="setRelation">
                       Set Relationship
                     </TabsTrigger>
+                    <TabsTrigger value="evaluation">Evaluation</TabsTrigger>
                   </TabsList>
                 </div>
                 <TabsContent value="list" className="mt-4">
@@ -162,11 +162,11 @@ export default function AnalysisPage({
                 <TabsContent value="coverage">
                   <CoverageTable report={report} />
                 </TabsContent>
-                <TabsContent value="evaluation">
-                  <EvaluationReport report={report} />
-                </TabsContent>
                 <TabsContent value="setRelation">
                   <SetRelation report={report} />{' '}
+                </TabsContent>
+                <TabsContent value="evaluation">
+                  <EvaluationReport report={report} />
                 </TabsContent>
               </Tabs>
             </div>
