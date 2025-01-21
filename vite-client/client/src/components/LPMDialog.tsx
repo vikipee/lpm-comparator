@@ -180,7 +180,7 @@ export default function LPMDialog({
         </div>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="md:w-1/2 space-y-2">
-            <h3 className="text-lg font-semibold">Metrics</h3>
+            <h3 className="text-lg font-semibold">Measures</h3>
             <p>Fitness: {selectedLpm?.fitness.toFixed(4)}</p>
             <p>Precision: {selectedLpm?.precision.toFixed(4)}</p>
             <p>Coverage: {selectedLpm?.coverage.toFixed(4)}</p>

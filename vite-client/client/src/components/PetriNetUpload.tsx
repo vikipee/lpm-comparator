@@ -35,7 +35,7 @@ export default function PetriNetUpload({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">{side} Models</h3>
+        <h3 className="text-lg font-semibold">{side === "Left" ? "LPM Set A": "LPM Set B"}</h3>
       </div>
       <Button
         className="w-full"

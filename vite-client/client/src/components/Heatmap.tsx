@@ -90,18 +90,18 @@ const MyResponsiveHeatMap = ({ data }: { data: any }) => {
         steps: 10,
       }}
       emptyColor={themeColors.background}
-      margin={{ top: 120, right: 120, bottom: 120, left: 120 }} // Increased margins for better spacing
+      margin={{ top: 120, right: 120, bottom: 120, left: 120 }}
       valueFormat=".2f"
       axisTop={{
         tickSize: 5,
 
         tickPadding: 10,
 
-        tickRotation: -45,
+        tickRotation: -30,
 
         legend: 'Set B',
 
-        legendOffset: -90,
+        legendOffset: -100,
 
         legendPosition: 'middle',
       }}
@@ -110,13 +110,13 @@ const MyResponsiveHeatMap = ({ data }: { data: any }) => {
 
         tickPadding: 10,
 
-        tickRotation: -45,
+        tickRotation: -50,
 
         legend: 'Set A',
 
         legendPosition: 'middle',
 
-        legendOffset: -90,
+        legendOffset: -100,
       }}
       legends={[
         {
@@ -136,7 +136,7 @@ const MyResponsiveHeatMap = ({ data }: { data: any }) => {
 
           tickOverlap: false,
 
-          tickFormat: '.2f', // Legend Tick Formatting
+          tickFormat: '.2f',
 
           title: 'Value →',
 
