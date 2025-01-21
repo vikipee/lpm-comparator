@@ -96,4 +96,4 @@ def graph_edit_distance(g1: nx.DiGraph, g2: nx.DiGraph, timeout=None):
             return 0
         return int(n1["label"] != n2["label"])
 
-    return nx.graph_edit_distance(g1, g2, node_subst_cost=node_cost, timeout=timeout)
+    return nx.graph_edit_distance(g1, g2, node_subst_cost=node_cost, timeout=1)
