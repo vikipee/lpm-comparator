@@ -60,6 +60,9 @@ def main():
         with open(f"pipeline/reports/{config["output"]}.json", "w") as file:
             json.dump(json_export, file)
 
+        with open(f"pipeline/reports/times_{config["output"]}.json", "w") as file:
+            json.dump(report_times, file)
+
     with open("pipeline/times.json", "w") as file:
         json.dump(times, file)
 

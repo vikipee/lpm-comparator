@@ -30,7 +30,7 @@ class LPM:
        
     def get_log(self):
         if self.log is None:
-            self.log =  find_traces(self.net, self.im, self.fm, parameters={"MAX_TRACE_LENGTH": 10})
+            self.log =  find_traces(self.net, self.im, self.fm, parameters={"MAX_TRACE_LENGTH": 7})
         
         return self.log
     

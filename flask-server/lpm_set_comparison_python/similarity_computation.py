@@ -62,13 +62,17 @@ def compute_transition_adjancency_similarity(lpm_a: LPM | LPMSet, lpm_b: LPM | L
     
     return 2 * len(intersection_tar) / denominator
 
-def compute_normalized_ged_sim(lpm_a: LPM, lpm_b: LPM, timeout=0.1):
+def compute_normalized_ged_sim(lpm_a: LPM, lpm_b: LPM, timeout=0.5):
     g1 = lpm_a.get_graph()
     g2 = lpm_b.get_graph()
     
     ged = graph_edit_distance(g1, g2, timeout=timeout)
     ged_g1_empty = graph_edit_distance(g1, nx.empty_graph(), timeout=timeout)
     ged_g2_empty = graph_edit_distance(g2, nx.empty_graph(), timeout=timeout)
+
+    if ged is None or ged_g1_empty is None or ged_g2_empty is None:
+        return 0
+
     return 1- ( ged / (ged_g1_empty + ged_g2_empty))
 
 def compute_pairwise_similarity_measures(set_a: LPMSet, set_b: LPMSet, similarity_fn: Callable[[LPM, LPM], float]):
@@ -132,6 +136,7 @@ def compute_similarity_measures(set_a: LPMSet, set_b: LPMSet):
     time_2 = time.perf_counter()
     overall_trace_sim = compute_trace_similarity_leven(set_a, set_b),
     time_3 = time.perf_counter()
+    print("Computed trace similarity")
     similarity_matrix_eventually_follows = compute_pairwise_similarity_measures(set_a, set_b, compute_eventually_follows_similarity)
     time_4 = time.perf_counter()
     overall_eventually_follows_sim = compute_eventually_follows_similarity(set_a, set_b)
@@ -141,6 +146,7 @@ def compute_similarity_measures(set_a: LPMSet, set_b: LPMSet):
     time_6 = time.perf_counter()
     overall_perfect_sim = compute_trace_similarity_perfect(set_a, set_b)
     time_7 = time.perf_counter()
+    print("Computed trace similarity perfect")
     similarity_matrix_tar = compute_pairwise_similarity_measures(set_a, set_b, compute_transition_adjancency_similarity)
     time_8 = time.perf_counter()
     overall_tar_sim = compute_transition_adjancency_similarity(set_a, set_b)
