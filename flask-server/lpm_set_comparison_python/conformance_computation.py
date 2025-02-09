@@ -1,5 +1,7 @@
 import concurrent.futures
 import time
+
+from matplotlib import use
 from .lpm import LPMSet, LPM
 from typing import Tuple, List
 import numpy as np
@@ -98,8 +100,8 @@ def compute_coverage(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]]):
 
     return results, masks, variants, times
 
-def compute_conformance_measures_multi_processing(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]], executor: concurrent.futures.ProcessPoolExecutor):
-    partial_fitness_precision_on_traces = partial(compute_fitness_precision_on_subtraces, traces=traces)
+def compute_conformance_measures_multi_processing(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]], executor: concurrent.futures.ProcessPoolExecutor, use_TBR=True):
+    partial_fitness_precision_on_traces = partial(compute_fitness_precision_on_subtraces, traces=traces, use_TBR=use_TBR)
     time_1 = time.perf_counter()
     fitness_precision_a = list(executor.map(partial_fitness_precision_on_traces, set_a.lpms))
     time_2 = time.perf_counter()
@@ -138,8 +140,8 @@ def compute_conformance_measures_multi_processing(set_a: LPMSet, set_b: LPMSet, 
 
     return times
 
-def compute_conformance_measures(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]]):
-    partial_fitness_precision_on_traces = partial(compute_fitness_precision_on_subtraces, traces=traces)
+def compute_conformance_measures(set_a: LPMSet, set_b: LPMSet, traces: List[Tuple[str]], use_TBR=True):
+    partial_fitness_precision_on_traces = partial(compute_fitness_precision_on_subtraces, traces=traces, use_TBR=use_TBR)
 
     time_1 = time.perf_counter()
     fitness_precision_a = list(map(partial_fitness_precision_on_traces, set_a.lpms))
@@ -303,7 +305,7 @@ def can_event_be_replayed_on_model(event_idx, trace: Tuple[str], model: LPM):
                 
     return list(replayable_indices) 
 
-def compute_fitness_precision_on_subtraces(model: LPM, traces):
+def compute_fitness_precision_on_subtraces(model: LPM, traces, use_TBR=True):
     subtraces = utils.get_subtraces_for_model(traces, model)
 
     if len(subtraces) == 0:
@@ -316,6 +318,23 @@ def compute_fitness_precision_on_subtraces(model: LPM, traces):
 
     event_log = utils.create_event_log_from_traces(list(subtraces))
 
+    if use_TBR:
+        time_1 = time.perf_counter()
+        fitness = pm4py.conformance.fitness_token_based_replay(event_log, model.net, model.im, model.fm)["log_fitness"]
+        time_2 = time.perf_counter()
+        precision = pm4py.conformance.precision_token_based_replay(event_log, model.net, model.im, model.fm)
+        time_3 = time.perf_counter()
+        model.fitness = fitness
+        model.precision = precision
+    else:
+        time_1 = time.perf_counter()
+        fitness =  pm4py.fitness_alignments(event_log, model.net, model.im, model.fm)["averageFitness"]
+        time_2 = time.perf_counter()
+        precision = pm4py.precision_alignments(event_log, model.net, model.im, model.fm)
+        time_3 = time.perf_counter()
+        model.fitness = fitness
+        model.precision = precision
+
     #fitness =  pm4py.fitness_alignments(event_log, model.net, model.im, model.fm)["averageFitness"]
     #precision = pm4py.precision_alignments(event_log, model.net, model.im, model.fm)
 
@@ -324,13 +343,7 @@ def compute_fitness_precision_on_subtraces(model: LPM, traces):
 
     #fitness = pm4py.conformance.fitness_alignments(event_log, model.net, model.im, model.fm)
     #precision = pm4py.conformance.precision_alignments(event_log, model.net, model.im, model.fm)
-    time_1 = time.perf_counter()
-    fitness = pm4py.conformance.fitness_token_based_replay(event_log, model.net, model.im, model.fm)["log_fitness"]
-    time_2 = time.perf_counter()
-    precision = pm4py.conformance.precision_token_based_replay(event_log, model.net, model.im, model.fm)
-    time_3 = time.perf_counter()
-    model.fitness = fitness
-    model.precision = precision
+    
 
     return fitness, precision, time_2 - time_1, time_3 - time_2
 
