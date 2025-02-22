@@ -7,6 +7,7 @@ import json
 from file_storage import save_computations
 import concurrent.futures
 import time
+import atexit
 
 def calculate_report(
     set_a: LPMSet,
@@ -19,19 +20,24 @@ def calculate_report(
     times = {}
     report = {}
 
-    #Compute traces of LPMs first to not add time to similarity unnecessarily
-    start_trace_a_time = time.perf_counter()
-    for lpm in set_a.lpms:
-        lpm.get_traces()
-    
-    times["traces_a"] = time.perf_counter() - start_trace_a_time
-    print("Computed traces for set A")
-    
-    start_trace_b_time = time.perf_counter()
-    for lpm in set_b.lpms:
-        lpm.get_traces()
-    
-    times["traces_b"] = time.perf_counter() - start_trace_b_time
+    with concurrent.futures.ProcessPoolExecutor() as _executor:
+
+        #Compute traces of LPMs first to not add time to similarity unnecessarily
+        start_trace_a_time = time.perf_counter()
+        traces_a = list(_executor.map(get_traces, set_a.lpms))
+        print("Computed traces for set A",traces_a)
+        for i, lpm in enumerate(set_a.lpms):
+            lpm.traces = traces_a[i]
+        
+        times["traces_a"] = time.perf_counter() - start_trace_a_time
+        print("Computed traces for set A")
+        
+        start_trace_b_time = time.perf_counter()
+        traces_b = list(_executor.map(get_traces, set_b.lpms))
+        for i, lpm in enumerate(set_b.lpms):
+            lpm.traces = traces_b[i]
+        
+        times["traces_b"] = time.perf_counter() - start_trace_b_time
     print("Computed traces for set B")
 
     if not pipeline:
@@ -50,17 +56,16 @@ def calculate_report(
         if len(set_a.lpms) > 10 or len(set_b.lpms) > 10:
             #Use multiprocessing
             print("Using multiprocessing")
-            with concurrent.futures.ProcessPoolExecutor() as executor:
-                start_coverage_time = time.perf_counter()
-                report["coverage"], masks, variants, times["coverage"] = compute_coverage_multi_processing(set_a, set_b, event_log, executor)
-                time_coverage = time.perf_counter() - start_coverage_time
-                print(f"Computed coverage in {time_coverage} seconds")
+            start_coverage_time = time.perf_counter()
+            report["coverage"], masks, variants, times["coverage"] = compute_coverage_multi_processing(set_a, set_b, event_log, _executor)
+            time_coverage = time.perf_counter() - start_coverage_time
+            print(f"Computed coverage in {time_coverage} seconds")
 
-                if not pipeline:
-                    yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing conformance...'})}\n\n"
+            if not pipeline:
+                yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing conformance...'})}\n\n"
 
-                start_conformance_time = time.perf_counter()
-                times["conformance"] = compute_conformance_measures_multi_processing(set_a, set_b, event_log, executor)
+            start_conformance_time = time.perf_counter()
+            times["conformance"] = compute_conformance_measures_multi_processing(set_a, set_b, event_log, _executor)
             time_conformance = time.perf_counter() - start_conformance_time
             print(f"Computed conformance measures in {time_conformance} seconds")
         else: 
@@ -125,3 +130,6 @@ def calculate_report(
         times["conformance_total"] = time_conformance
 
         yield set_a, set_b, event_log, other_computations, report, times
+    
+def get_traces(lpm):
+    return lpm.get_traces()

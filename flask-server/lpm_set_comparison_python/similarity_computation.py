@@ -8,6 +8,7 @@ from pm4py.algo.clustering.trace_attribute_driven.leven_dist.leven_dist_calc imp
 import networkx as nx
 from .utils import graph_edit_distance, run_with_timeout
 import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 def compute_trace_similarity_perfect(lpm_a: LPM | LPMSet, lpm_b: LPM | LPMSet):
     traces_a = lpm_a.get_traces()
@@ -76,14 +77,25 @@ def compute_normalized_ged_sim(lpm_a: LPM, lpm_b: LPM, timeout=1):
     return 1- ( ged / (ged_g1_empty + ged_g2_empty))
 
 def compute_pairwise_similarity_measures(set_a: LPMSet, set_b: LPMSet, similarity_fn: Callable[[LPM, LPM], float]):
-    similarity_matrix = []
-
-    for lpm_a in set_a.lpms:
-        row = []
-        for lpm_b in set_b.lpms:
-            similarity = similarity_fn(lpm_a, lpm_b)
-            row.append(similarity)
-        similarity_matrix.append(row)
+    # Pre-allocate the similarity matrix based on the sizes of the input sets.
+    num_rows = len(set_a.lpms)
+    num_cols = len(set_b.lpms)
+    similarity_matrix = [[None] * num_cols for _ in range(num_rows)]
+    
+    # Dictionary to map futures to their (i, j) indices in the matrix.
+    future_to_index = {}
+    
+    with ProcessPoolExecutor() as executor:
+        # Submit each similarity computation as a separate task.
+        for i, lpm_a in enumerate(set_a.lpms):
+            for j, lpm_b in enumerate(set_b.lpms):
+                future = executor.submit(similarity_fn, lpm_a, lpm_b)
+                future_to_index[future] = (i, j)
+        
+        # As each future completes, store its result in the matrix.
+        for future in as_completed(future_to_index):
+            i, j = future_to_index[future]
+            similarity_matrix[i][j] = future.result()
     
     return similarity_matrix
 
@@ -180,17 +192,6 @@ def compute_similarity_measures(set_a: LPMSet, set_b: LPMSet):
         similarity_matrix_ged = [[]]
         ged_similarity_time = "Timeout"
         print("Timeout ged")
-
-    #Estimate ged time without timeout
-    time_for_approx_ged = 0
-    for i in range(5):
-        random_lpm_a = set_a.lpms[random.randint(0, len(set_a.lpms)-1)]
-        random_lpm_b = set_b.lpms[random.randint(0, len(set_b.lpms)-1)]
-        time_start = time.perf_counter()
-        compute_normalized_ged_sim(random_lpm_a, random_lpm_b, timeout=600)
-        time_for_approx_ged += time.perf_counter() - time_start
-    time_for_approx_ged /= 5
-    time_for_approx_ged *= (len(set_a.lpms) * len(set_b.lpms))
     
     #Create matchings
     matchings = {}
@@ -202,7 +203,10 @@ def compute_similarity_measures(set_a: LPMSet, set_b: LPMSet):
     similarity_matrix_ged_np = np.array(similarity_matrix_ged)
     matchings["ged_sym"] = create_symmetric_optimal_matching(similarity_matrix_ged_np)
 
-    overall_ged = sum([similarity_matrix_ged_np[x,y] for x,y in matchings["ged_sym"]]) / len(matchings["ged_sym"])
+    if len(matchings["ged_sym"]) > 0:
+        overall_ged = sum([similarity_matrix_ged_np[x,y] for x,y in matchings["ged_sym"]]) / len(matchings["ged_sym"])
+    else:
+        overall_ged = 0
     
     results = {
         "trace_similarity": {
@@ -236,8 +240,7 @@ def compute_similarity_measures(set_a: LPMSet, set_b: LPMSet):
         "overall_trace_sim_perfect": time_7 - time_6,
         "transition_adjacency_similarity": time_8 - time_7,
         "overall_tar_sim": time_9 - time_8,
-        "ged_similarity_capped": ged_similarity_time,
-        "approx_ged": time_for_approx_ged
+        "ged_similarity_capped": ged_similarity_time
     }
 
     return results, matchings, times
