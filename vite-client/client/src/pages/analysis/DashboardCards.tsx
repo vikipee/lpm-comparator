@@ -27,9 +27,11 @@ import { Slider } from '@/components/ui/slider';
 export const ConformanceCard = ({
   report,
   setAnalysisPage,
+  isOverview = true,
 }: {
   report: ReportData;
   setAnalysisPage: (page: AnalysisPage) => void;
+  isOverview?: boolean;
 }) => {
   const [aggregationMethod, setAggregationMethod] = useState<aggregationMethod>(
     'weightedHarmonicMean',
@@ -79,6 +81,7 @@ export const ConformanceCard = ({
             Aggregated Conformance
           </button>
         </CardTitle>
+        {!isOverview ? (
         <Select
           onValueChange={(v) => setAggregationMethod(v as aggregationMethod)}
           defaultValue={aggregationMethod}
@@ -100,7 +103,7 @@ export const ConformanceCard = ({
               Weighted Geometric Mean
             </SelectItem>
           </SelectContent>
-        </Select>
+        </Select>): (<div>Weighted Harmonic Mean</div>)}
       </CardHeader>
       <CardContent className="flex-1">
         <ChartContainer
@@ -355,9 +358,11 @@ const SimilarityCard = ({
 const SetRelationCard = ({
   report,
   setAnalysisPage,
+  isOverview = true
 }: {
   report: ReportData;
   setAnalysisPage: (page: AnalysisPage) => void;
+  isOverview?: boolean;
 }) => {
   const [similarityMeasure, setSimilarityMeasure] = useState<SimilarityMeasure>(
     'trace_similarity' as SimilarityMeasure,
@@ -381,6 +386,7 @@ const SetRelationCard = ({
               similarityMeasure={similarityMeasure}
               setSimilarityMeasure={setSimilarityMeasure}
             />
+            {!isOverview && (
             <div className="flex flex-col items-center">
               <span className="text-sm text-gray-500 mb-2">
                 Threshold:{threshold.toFixed(2)}
@@ -393,9 +399,11 @@ const SetRelationCard = ({
                 onValueChange={(value) => setThreshold(value[0])}
                 className="w-24"
               />
-            </div>
+            </div>)}
           </div>
         </div>
+        {isOverview && (
+          <div>Threshold: 0.9</div>)}
       </CardHeader>
       <CardContent className="items-center justify-center">
         <div className="h-60 w-80">

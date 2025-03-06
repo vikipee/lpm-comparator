@@ -8,7 +8,7 @@ export default function AnalysisConformance({
 }) {
   return (
     <div className="w-3/5 h-[calc(100vh-8rem)] mx-auto mt-6">
-      <ConformanceCard report={report} setAnalysisPage={() => {}} />
+      <ConformanceCard report={report} setAnalysisPage={() => {}} isOverview={false} />
     </div>
   );
 }

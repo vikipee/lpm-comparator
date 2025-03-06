@@ -30,7 +30,7 @@ export const SimilaritySelection = ({
           Eventually Follows similarity
         </SelectItem>
         <SelectItem value="transition_adjacency_similarity">
-          Transition Adjacency similarity
+          Directly Follows similarity
         </SelectItem>
         <SelectItem value="ged_similarity">
           Graph Edit Distance similarity
