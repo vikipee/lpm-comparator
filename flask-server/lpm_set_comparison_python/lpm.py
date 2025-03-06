@@ -46,9 +46,25 @@ class LPM:
             self.traces = set(simple_traces)
         
         return self.traces
+    
+    def get_traces_and_log(self):
+        log = self.get_log()
+
+        simple_traces = []
+        
+        for trace in self.get_log():
+            trace_events = [event['concept:name'] for event in trace]
+            simple_traces.append(tuple(trace_events))
+    
+        self.traces = set(simple_traces)
+
+        return self.traces, log
+        
 
     def get_eventually_follows_set(self):
+
         if self.eventually_follows_set is None:
+            #print(f"Computing eventually follows set for {self.name} with log exists? {self.log != None}")
             eventually_follows_dict = get_eventually_follows_dict(self.get_log())
             self.eventually_follows_set = set(eventually_follows_dict.keys())
 

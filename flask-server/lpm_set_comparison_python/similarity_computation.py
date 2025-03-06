@@ -76,7 +76,7 @@ def compute_normalized_ged_sim(lpm_a: LPM, lpm_b: LPM, timeout=1):
 
     return 1- ( ged / (ged_g1_empty + ged_g2_empty))
 
-def compute_pairwise_similarity_measures(set_a: LPMSet, set_b: LPMSet, similarity_fn: Callable[[LPM, LPM], float]):
+def compute_pairwise_similarity_measures_multi(set_a: LPMSet, set_b: LPMSet, similarity_fn: Callable[[LPM, LPM], float]):
     # Pre-allocate the similarity matrix based on the sizes of the input sets.
     num_rows = len(set_a.lpms)
     num_cols = len(set_b.lpms)
@@ -97,6 +97,17 @@ def compute_pairwise_similarity_measures(set_a: LPMSet, set_b: LPMSet, similarit
             i, j = future_to_index[future]
             similarity_matrix[i][j] = future.result()
     
+    return similarity_matrix
+
+def compute_pairwise_similarity_measures(set_a: LPMSet, set_b: LPMSet, similarity_fn: Callable[[LPM, LPM], float]):
+    similarity_matrix = []
+
+    for lpm_a in set_a.lpms:
+        row = []
+        for lpm_b in set_b.lpms:
+            similarity = similarity_fn(lpm_a, lpm_b)
+            row.append(similarity)
+        similarity_matrix.append(row)
     return similarity_matrix
 
 def check_subset(similarity_matrix: np.ndarray, sim_threshold= 0.9, subset_threshold=1):
@@ -149,7 +160,7 @@ def compute_similarity_measures(set_a: LPMSet, set_b: LPMSet):
     
     try:
         # Set a timeout of 2 seconds (adjust as needed).
-        similarity_matrix_leven = run_with_timeout(compute_pairwise_similarity_measures, timeout=1800, set_a=set_a, set_b=set_b, similarity_fn=compute_trace_similarity_leven)
+        similarity_matrix_leven = run_with_timeout(compute_pairwise_similarity_measures_multi, timeout=1800, set_a=set_a, set_b=set_b, similarity_fn=compute_trace_similarity_leven)
         trace_similarity_time = time.perf_counter() - time_1
     except TimeoutError as e:
         similarity_matrix_leven = [[]]
@@ -186,7 +197,7 @@ def compute_similarity_measures(set_a: LPMSet, set_b: LPMSet):
 
     print("\n\n\n\nComputing GED similarity")
     try:
-        similarity_matrix_ged = run_with_timeout(compute_pairwise_similarity_measures, timeout=3600, set_a=set_a, set_b=set_b, similarity_fn=compute_normalized_ged_sim)
+        similarity_matrix_ged = run_with_timeout(compute_pairwise_similarity_measures_multi, timeout=3600, set_a=set_a, set_b=set_b, similarity_fn=compute_normalized_ged_sim)
         ged_similarity_time = time.perf_counter() - time_9
     except TimeoutError as e:
         similarity_matrix_ged = [[]]
