@@ -42,6 +42,7 @@ def calculate_report(
         times["traces_b"] = time.perf_counter() - start_trace_b_time
     print("Computed traces for set B")
 
+
     if not pipeline:
         yield f"data: {json.dumps({'state': 'IN_PROGRESS', 'message': 'Computing similarity...'})}\n\n"
     start_similarity_time = time.perf_counter()

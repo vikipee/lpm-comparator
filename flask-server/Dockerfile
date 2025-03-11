@@ -19,4 +19,6 @@ SHELL ["conda", "run", "-n", "pm4py_env", "/bin/bash", "-c"]
 # Copy your application code into the container at /app
 COPY . .
 
-CMD ["conda", "run", "--no-capture-output", "-n", "pm4py_env", "python", "server.py"]
+EXPOSE 5000
+
+CMD ["conda", "run", "-n", "pm4py_env", "python", "server.py"]
