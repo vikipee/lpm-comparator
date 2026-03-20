@@ -1,7 +1,6 @@
 # LPM Comparator
 
-
-<img src="./images/logo.svg" alt="Logo" width="200" />
+<img src="./images/logo.png" alt="Logo" width="200" />
 
 LPM Comparator is a tool for comparing two sets of local process models. Local process models are process models 
 that describe fragments of a process, and usually they go in sets. However, this makes them challenging to evaluate 
