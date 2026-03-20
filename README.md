@@ -1,6 +1,5 @@
 # LPM Comparator
 
----
 
 <img src="./images/logo.svg" alt="Logo" width="200" />
 
